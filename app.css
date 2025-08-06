@@ -1,0 +1,444 @@
+body {
+max-width: 360px;
+margin: 0 auto;
+}
+
+h1.app-title {
+width: 100%;
+text-align: center;
+top: 2rem;
+position: absolute;
+margin: auto;
+left: 0;
+}
+h1.app-title img {
+width: 180px;
+}
+
+html {
+overflow: auto;
+sssssssssssuser-select: none;
+background: #70634d url(bg.jpg) top 72px center;
+background-size: 360px;
+padding: 72px 0px 24px;
+}
+
+:root {
+--color-best: #3f753b;
+--color-good: #628c5b;
+--color-norm: #85a47b;
+--color-poor: #cb8d73;
+--color-sick: #cb6053;
+}
+
+.-select .badge {
+width: 25%;
+border: 1px solid var(--bolder-thing);
+background: none;
+}
+
+.-main .badge {
+width: 20%;
+border: 0px;
+background:
+repeating-linear-gradient(var(--gradient3)),
+repeating-linear-gradient(var(--gradient2)),
+repeating-linear-gradient(var(--gradient1));
+--gradient3:
+var(--angle2), transparent 0px 3px, var(--decor1) 3px 5px, transparent 5px 8px;
+--gradient2:
+var(--angle1), transparent, transparent 25%, var(--softest-thing) 50%,
+var(--softest-space) 50%, transparent 75%, transparent;
+--gradient1:
+var(--angle1), var(--color1), var(--color1) 50%, var(--color2) 50%,
+var(--color2);
+}
+
+.-main .badge a {
+width: 88%;
+}
+.-main .badge a:first-child {
+margin: auto -44%;
+}
+.-main .badge u {
+border: 2px dashed var(--decor2);
+}
+.-main .badge a[style] {
+border: 1px solid #0007;
+}
+.-main .badge > b {
+border: 1px solid var(--softer-thing);
+}
+
+.-main .badge,
+.-select .badge,
+.-main .badge > b,
+.-select .badge > b,
+.-main .badge > b > u,
+.-select .badge > b > u {
+border-radius: 0px;
+}
+.-main .badge:first-child,
+.-main .badge:first-child > b,
+.-main .badge:first-child > b > u {
+sssborder-top-left-radius: 16px;
+}
+.-main .badge:nth-child(4),
+.-main .badge:nth-child(4) > b,
+.-main .badge:nth-child(4) > b > u {
+ssssborder-top-right-radius: 16px;
+}
+.-main b.badge a:first-of-type,
+.-select b.badge a:first-of-type,
+.-matching a:first-of-type {
+background: var(--soft-thing);
+color: var(--boldest-space);
+}
+
+.sJ {
+--decor1: #0002;
+}
+.sP {
+--decor1: #fff3;
+}
+
+.sI {
+--decor2: #fff9;
+}
+.sE {
+--decor2: #0007;
+}
+
+.V1 {
+--angle1: 135deg;
+}
+.E1 {
+--angle1: 45deg;
+}
+.P1 {
+--angle1: 180deg;
+}
+.L1 {
+--angle1: 90deg;
+}
+
+.V2 {
+--angle2: 135deg;
+}
+.E2 {
+--angle2: 45deg;
+}
+.P2 {
+--angle2: 180deg;
+}
+.L2 {
+--angle2: 90deg;
+}
+
+.V2 {
+--pattern: repeating-linear-gradient(
+135deg,
+transparent 0px 4px,
+var(--decor1) 4px 6px,
+transparent 6px 10px
+);
+}
+.E2 {
+--pattern: repeating-linear-gradient(
+45deg,
+transparent 0px 4px,
+var(--decor1) 4px 6px,
+transparent 6px 10px
+);
+}
+.P2 {
+--pattern: repeating-linear-gradient(
+180deg,
+transparent 0px 4px,
+var(--decor1) 4px 6px,
+transparent 6px 10px
+);
+}
+.L2 {
+--pattern: repeating-linear-gradient(
+90deg,
+transparent 0px 4px,
+var(--decor1) 4px 6px,
+transparent 6px 10px
+);
+}
+
+.socbest {
+--color1: #1ea51efa;
+}
+.psybest {
+--color2: #1ea51efa;
+}
+.socgood {
+--color1: #7fcb7fed;
+}
+.psygood {
+--color2: #7fcb7fed;
+}
+.socnorm {
+--color1: #7fb2cbed;
+}
+.psynorm {
+--color2: #7fb2cbed;
+}
+.socpoor {
+--color1: #cb7fe5ed;
+}
+.psypoor {
+--color2: #cb7fe5ed;
+}
+.socsick {
+--color1: #d21e1efa;
+}
+.psysick {
+--color2: #d21e1efa;
+}
+.socnone {
+--color1: #c3c4c2ed;
+}
+.psynone {
+--color2: #c3c4c2ed;
+}
+
+.blank,
+.header,
+.footer {
+background-color: var(--bold-space);
+background-image:
+repeating-linear-gradient(
+-60deg,
+transparent,
+transparent 2px,
+var(--soft-space) 2px,
+var(--soft-space) 4px
+),
+repeating-linear-gradient(
+30deg,
+transparent,
+transparent 1px,
+var(--soft-space) 1px,
+var(--soft-space) 4px
+),
+linear-gradient(var(--bold-space) 0px, transparent 360px);
+clear: both;
+padding: 16px;
+border: 1px solid var(--bolder-thing);
+}
+hr {
+border: 2px dashed var(--bolder-thing);
+margin: 1em calc(-1em + 2px);
+height: 0;
+border-bottom: 0;
+}
+hr:first-child {
+margin-top: calc(-1em + 2px);
+margin-bottom: 2em;
+}
+hr:last-child {
+margin-bottom: calc(-1em + 2px);
+margin-top: 2em;
+}
+.item p {
+margin: 0px;
+}
+
+.top-rounded {
+border-top-left-radius: 1em;
+border-top-right-radius: 1em;
+}
+
+.-main.top-rounded {
+font-size: var(--smaller);
+height: calc(72px * 3);
+}
+
+.-select.top-rounded {
+text-align: center;
+font-size: var(--larger);
+}
+
+.header {
+border-top-left-radius: 1em;
+border-top-right-radius: 1em;
+background:
+repeating-linear-gradient(
+-60deg,
+var(--soft-space),
+var(--soft-space) 2px,
+var(--softer-space) 2px,
+var(--softer-space) 4px
+),
+repeating-linear-gradient(
+30deg,
+var(--soft-space),
+var(--soft-space) 1px,
+var(--softer-space) 1px,
+var(--softer-space) 4px
+),
+var(--softer-space);
+border: 1px solid var(--bolder-thing);
+overflow: hidden;
+}
+
+.footer,
+.bottom-rounded {
+border-bottom-left-radius: 1em;
+border-bottom-right-radius: 1em;
+}
+
+.header h2 {
+text-align: center;
+}
+
+[disabled] {
+background: var(--softest-thing);
+color: var(--soft-thing);
+cursor: not-allowed;
+}
+
+#matching ul {
+border-radius: 0.5rem;
+overflow: hidden;
+}
+
+#matching h3 {
+text-align: center;
+font-weight: bold;
+}
+
+#matching td {
+font-size: var(--small);
+}
+
+#matching button {
+letter-spacing: -3%;
+}
+
+#matching td div {
+border-radius: 0.5rem;
+overflow: hidden;
+}
+
+#matching td:first-child div {
+text-align: right;
+}
+#matching td:first-child div button {
+border-radius: 5rem 0.5rem 0.5rem 5rem;
+}
+#matching td:nth-child(2) div button {
+border-radius: 0.5rem 5rem 5rem 0.5rem;
+}
+
+#matching div button {
+color: var(--boldest-space);
+text-decoration: underline;
+border: 0;
+outline: 0;
+}
+
+.-spec h3 {
+font-size: var(--large);
+}
+.-spec i {
+display: block;
+}
+
+#selector:not([hidden]) {
+display: table;
+width: 100%;
+background:
+repeating-linear-gradient(
+-60deg,
+var(--soft-space),
+var(--soft-space) 2px,
+var(--softer-space) 2px,
+var(--softer-space) 4px
+),
+repeating-linear-gradient(
+30deg,
+var(--soft-space),
+var(--soft-space) 1px,
+var(--softer-space) 1px,
+var(--softer-space) 4px
+),
+var(--softer-space);
+}
+
+.-edit b.badge {
+aspect-ratio: unset;
+height: 100%;
+}
+
+label {
+display: block;
+margin: 0 0 0.25rem 1rem;
+}
+
+.-matching b.badge {
+border: none;
+}
+
+.-matching b.badge i {
+font-size: 3.2rem;
+line-height: 50%;
+}
+
+#matching .best td button,
+#matching .best td div,
+#matching .best td b.badge,
+#matching .best td b.badge a:first-of-type {
+background: var(--softer-green);
+}
+
+#matching .good td button,
+#matching .good td div,
+#matching .good td b.badge,
+#matching .good td b.badge a:first-of-type {
+background: var(--softer-green);
+}
+
+#matching .norm td button,
+#matching .norm td div,
+#matching .norm td b.badge,
+#matching .norm td b.badge a:first-of-type {
+background: var(--softer-blue);
+}
+
+#matching .poor td button,
+#matching .poor td div,
+#matching .poor td b.badge,
+#matching .poor td b.badge a:first-of-type {
+background: var(--softer-purple);
+}
+
+#matching .sick td button,
+#matching .sick td div,
+#matching .sick td b.badge,
+#matching .sick td b.badge a:first-of-type {
+background: var(--softer-red);
+}
+
+#matching .none td button,
+#matching .none td div,
+#matching .none td b.badge,
+#matching .none td b.badge a:first-of-type {
+background: var(--soft-thing);
+}
+
+.-main p {
+font-size: var(--smaller);
+}
+
+.no-margin {
+margin: 0px;
+text-align: center;
+}
+
+.small {
+font-size: var(--smaller);
+}
