@@ -1,0 +1,181 @@
+:root {
+--softer1: 
+    repeating-linear-gradient(
+        60deg,
+        transparent,
+        transparent 1px,
+        var(--snowy-haze) 2px,
+        var(--snowy-haze) 3px),
+    repeating-linear-gradient(
+        30deg,
+        transparent,
+        transparent 1px,
+        var(--snowy-haze) 2px,
+        var(--snowy-haze) 4px);
+--softest1:
+    repeating-linear-gradient(
+        -60deg,
+        transparent,
+        transparent 2px,
+        var(--snowy-dust) 2px,
+        var(--snowy-dust) 4px),
+    repeating-linear-gradient(
+        30deg,
+        transparent,
+        transparent 1px,
+        var(--snowy-dust) 1px,
+        var(--snowy-dust) 4px),
+    linear-gradient(
+        -135deg,
+        var(--snowy-haze) 72px,
+        var(--snowy) 360px);
+--soft1:
+    repeating-linear-gradient(
+        -60deg,
+        transparent,
+        transparent 1px,
+        var(--snowy-haze) 2px,
+        var(--snowy-haze) 4px),
+    repeating-linear-gradient(
+        30deg,
+        transparent,
+        transparent 1px,
+        var(--snowy-haze) 2px,
+        var(--snowy-haze) 3px),
+    linear-gradient(
+        0deg,
+        var(--snowy),
+        var(--snowy));
+}
+
+body {
+max-width: 360px;
+margin: 72px auto;
+position: relative;
+}
+
+body>h1:first-child {
+position: absolute;
+top: -36px;
+width: 100%;
+text-align: center;
+text-shadow: 1px 1px 2px #0004;
+color: #fff;
+user-select: none;
+}
+
+body>h1:first-child a {
+text-decoration: none;
+color: white;
+}
+
+body>h1:first-child img {
+max-width: 180px;
+}
+
+
+section>*,
+main>* {
+padding: 1rem;
+border: 1px solid color-mix(in srgb, var(--coal) 25%, var(--base-color));
+margin: 0;
+}
+
+section>*:first-child,
+main>*:first-child {
+border-top-left-radius: 1rem;
+border-top-right-radius: 1rem;
+}
+
+section>*:last-child,
+main>*:last-child {
+border-bottom-left-radius: 1rem;
+border-bottom-right-radius: 1rem;
+}
+
+.grid {
+display: grid;
+gap: 1rem;
+grid-template-columns: 1fr 1fr;
+}
+
+.grid>button,
+.grid>input,
+.grid>select {
+width: 100%;
+}
+
+hr {
+height: 2px;
+border: 2px dashed var(--line-color);
+border-bottom: 0;
+margin: calc(1rem - 1px) calc(-1rem + 2px);
+}
+
+hr:first-child {
+margin-top: calc(-1rem + 2px);
+margin-bottom: calc(1rem - 4px);
+}
+
+
+
+.flex {
+display: flex;
+flex-wrap: wrap;
+}
+
+a.badge {
+display: flex;
+position: relative;
+font-size: var(--large);
+font-family: var(--mono-font);
+background: var(--haze-color);
+aspect-ratio: 1;
+width: 100%;
+}
+
+.badge abbr,
+.badge i,
+.badge b {
+aspect-ratio: 1;
+position: absolute;
+margin: auto;
+top: 0;
+bottom: 0;
+left: 0;
+right: 0;
+}
+
+.badge abbr {
+display: flex;
+background: var(--coaly-dust);
+color: var(--snow);
+border-radius: 100%;
+justify-content: center;
+align-items: center;
+width: 75%;
+overflow: hidden;
+}
+
+.badge i {
+width: 75%;
+background-size: calc(100% + 2px);
+background-position: center;
+border-radius: 100%;
+border: 1px solid var(--coaly-haze);
+
+}
+.badge b {
+width: 100%;
+border: 1px solid var(--spot-color);
+border-radius: 0.5rem;
+}
+
+main .badge b {
+border: 1px solid var(--coaly-haze);
+border-radius: 0;
+}
+
+.sepia {
+backdrop-filter: sepia();
+}

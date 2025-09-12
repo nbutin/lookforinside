@@ -7,22 +7,22 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Service Worker Registered');
         });
     }
-    location.hash = '-main';
+    location.hash = 'main';
     window.addEventListener('hashchange', embody);
 });
 
 
 function embody(){
-    var hash = location.hash.slice(1) || '-main';
+    var hash = location.hash.slice(1) || 'main';
     console.log('embodied', hash);
-    document.querySelectorAll(':is(div, button).part-of').forEach(node => {
+    document.querySelectorAll('main, section, [data-name]').forEach(node => {
         let context = hash;
         while (context) {
-            if (node.classList.contains(context)) {
+            if (node.tagName.toLowerCase() == context || node.dataset.name == context) {
                 node.hidden = false;
                 break;
             }
-            context = context.split('-').slice(0, -1).join('-');
+            context = context.split('/').slice(0, -1).join('/');
         }
         if (!context) {
             node.hidden = true;
@@ -66,7 +66,7 @@ function coreGetSuiteParamsAll() {
 
 
 // ok
-function coreAcronym(name) {
+function acronym(name) {
     var name = name && `${name}`.split(' ') || [''];
     var abbr = '';
     if (name.length > 1) name.forEach(i => {abbr += i[0] && [...i][0].toUpperCase() || ''});
@@ -89,6 +89,19 @@ function coreBadge(image, label, onclick, featured, modifiers) {
     return html;
 }
 
+// OK
+function htmlBadge(image, label, onclick, class_a, class_b) {
+    image = image && image.replaceAll('"', "'") || '';
+    label = label && label.replaceAll('"', "'") || '';
+    onclick = onclick && `onclick="${onclick.replaceAll('"', "'")}"` || '';
+    class_a = class_a && `badge ${class_a}` || 'badge';
+    class_a = `class="${class_a}"`;
+    class_b = class_b && `class="${class_b}"` || '';
+    return `<a ${class_a} ${onclick}>
+        <abbr title="${label}">${acronym(label)}</abbr>
+        <i style="background-image:url('${image}')"></i>
+        <b ${class_b}></b></a>`;
+}
 
 // OK
 function initVk() {
@@ -98,16 +111,14 @@ function initVk() {
         console.log('vkBridge.VKWebAppInit returns', data)
         if (!data.result) throw new Error();
         console.log('vkBridge initialized');
+        _loadPropsVk();
         document.body.classList.add('-vk');
-        window.vk_user_id = 
-            location.search.match(/vk_user_id=(\d+)/)[1];
         window.vk_is_recommended = 
             location.search.includes('vk_is_recommended=1');
         window.vk_are_notifications_enabled = 
             location.search.includes('vk_are_notifications_enabled=1');
         window.vk_is_favorite = 
             location.search.includes('vk_is_favorite=1');
-        _loadPropsVk();
     })
     .catch(error => {
         console.error(error);
@@ -121,6 +132,7 @@ function initBastyon() {
         console.log('bastyon sdk initialized');
         sdk.emit('loaded');
     });
+    _loadPropsDb();
 }
 
 function openExternalLink(url) {
@@ -166,8 +178,14 @@ function openLinkInNewWindow(href) {
 
 
 function updateProps(props) {
-    // Если загружаемая версия выше, то присваиваем prop_stored и все её аттрибуты объекту window,
-    // при условии, что тип их содержимого не противоречит заявленному в prop_stored
+    // Если загружаемая версия выше, то присваиваем аттрибуты prop_stored объекту window,
+    // при условии, что тип их содержимого не противоречит заявленному в prop_stored,
+    // prop_cached обрабатываем не обращая внимания на версию
+    for (let name in props) {
+        if (name in window.prop_cached && typeof(window.prop_cached[name]) == typeof(props[name])) {
+            window[name] = props[name];
+        }
+    }
     const actual_version = window.prop_version;
     if (!props.prop_version || props.prop_version <= actual_version) {
         if (!window.prop_version) {
@@ -178,11 +196,10 @@ function updateProps(props) {
             console.log(`actual version of props - ${actual_version}, loaded version - ${props.prop_version}`);
             fixLayout();
         }
-    } else if (props.prop_stored && props.prop_stored.toString() == "[object Object]") {
+    } else {
         window.prop_version = props.prop_version;
-        window.prop_stored = props.prop_stored;
         for (let name in props) {
-            if (name in props.prop_stored && typeof(props.prop_stored[name]) == typeof(props[name])) {
+            if (name in window.prop_stored && typeof(window.prop_stored[name]) == typeof(props[name])) {
                 window[name] = props[name];
             }
         }
@@ -199,10 +216,13 @@ function appLoadProps() {
 
 function _loadPropsLocal() {
     const props = {};
-    const prop_stored = JSON.parse(localStorage['prop_stored'] || 'null');
-    for (name in {prop_version: 0, prop_stored: {}, ...(prop_stored  || {})}) {
-        if (!['undefined', 'NaN'].includes(localStorage[name])) {
-            props[name] = JSON.parse(localStorage[name] || 'null');
+    for (name in {prop_version: 0, ...(window.prop_stored  || {}), ...(window.prop_cached  || {})}) {
+        if (localStorage[name]) {
+            try {
+                props[name] = JSON.parse(localStorage[name]);
+            } catch {
+                console.error(`Infalid value in localStorage (${name} = ${localStorage[name].slice(0, 50)})`);
+            }
         }
     }
     updateProps(props);
@@ -210,23 +230,34 @@ function _loadPropsLocal() {
 
 
 function _loadPropsVk() {
-    if (!window.vk_user_id) return;
     const props = {};
     vkBridge
-    .send("VKWebAppStorageGet", {"keys": ['prop_version', 'prop_stored']})
-    .then(pre => {
-        pre.keys.forEach(obj => {
-            props[obj.key] = JSON.parse(obj.value);
+    .send("VKWebAppStorageGet", {"keys": ['prop_version', ...Object.keys(window.prop_stored)]})
+    .then(data => {
+        data.keys.forEach(obj => {
+            if (obj.value) {
+                try {
+                    props[obj.key] = JSON.parse(obj.value);
+                } catch {
+                    console.error(`Infalid value in vkStorage (${obj.key} = ${obj.value.slice(0, 50)})`);
+                }
+            }
         });
-        vkBridge
-        .send("VKWebAppStorageGet", {"keys": Object.keys(props.prop_stored).filter(i => i.slice(0, 5) == 'prop_')})
-        .then(data => {
-            data.keys.forEach(obj => {
-                props[obj.key] = JSON.parse(obj.value);
-            });
-            updateProps(props);
-        });
+        updateProps(props);
     });
+}
+
+
+function _loadPropsDb() {
+}
+
+
+function appKeepProps(list) {
+    console.log(222, list)
+    list = typeof(list) == 'object' && list.length && list
+        || typeof(list) == 'string' && [list]
+        || Object.keys(window.prop_cached  || {});
+    _savePropsLocal(list);
 }
 
 
@@ -246,7 +277,7 @@ function appSaveProps(list) {
 function _savePropsLocal(list) {
     list.forEach(name => {
         localStorage[name] = JSON.stringify(window[name]);
-        console.log(`${name} stored locally`);
+        console.log(`${name} kept locally`);
     });
 }
 
