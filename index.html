@@ -127,11 +127,11 @@
 <div>
     <hr/>
     <div class="grid">
-        <input type="text" name="name" onkeyup="changedProfile()" maxlength="23" placeholder="Имя" />
+        <input type="text" name="name" maxlength="99" placeholder="Имя" />
         <div class="rowspan-2" id="badge-place"></div>
-        <select name="test-s" onchange="changedProfile()"></select>
-        <select name="test-p" onchange="changedProfile()"></select>
-        <select name="sex" onchange="changedProfile()">
+        <select name="test-s"></select>
+        <select name="test-p"></select>
+        <select name="sex">
             <option value="1">Муж.</option>
             <option value="2">Жен.</option>
         </select>
@@ -148,15 +148,14 @@
 <div data-part="additional">
     <hr/>
     <div class="grid">
-        <input class="colspan-2 link" type="text" name="link" onkeyup="changedProfile()" maxlength="99" placeholder="Веб-адрес" />
-        <input type="text" name="location" onkeyup="changedProfile()" placeholder="Местоположение" />
-        <input type="text" name="year" onkeyup="changedProfile()" maxlength="4" placeholder="Год рожд." style="letter-spacing: -0.5px;" />
+        <input class="colspan-2 link" type="text" name="link" maxlength="99" placeholder="Веб-адрес" onclick="this.value && openExternalLink(this.value)" onfocus="this.blur()" />
+        <input type="text" name="location" placeholder="Местоположение" />
+        <input type="text" name="year" maxlength="4" placeholder="Год рожд." style="letter-spacing: -0.5px;" />
     </div>
     <p><strong>Все поля формы обязательны для заполнения.</strong> В графе "Местоположение" укажите географические координаты в&nbsp;формате <em class="know">55.053364,&nbsp;82.876141</em> (можно узнать&nbsp;в&nbsp;Яндекс- или Гугл-картах).</p>
     <p class="care">В целях безопасности рекомендуем указать координаты случайной точки ближайшего к вам крупного населенного пункта.</p>
     <p class="deny">Вступая в контакт с незнакомыми людьми в&nbsp;Интернете, будьте осторожны.</p>
 </div>
-
 <fieldset>
     <hr/>
     <div class="grid">

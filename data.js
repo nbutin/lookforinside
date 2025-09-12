@@ -170,6 +170,8 @@ for (let i=0; i<characters.length; i++) {
     }
 }
 
+const profile_map = ['name', 'test-s', 'test-p', 'sex', 'is_verified', 'link', 'year', 'lat', 'lon', 'id', 'image'];
+
 const characters_x = [
 ['Доктор Хайнц Фуфелшмерц из мультсериала "Финес и Ферб"', 0, 1, 1, 0, 'vk.com/fufel', 1980, 0.0, 0.0, -1, 'icons/1.png'],
 ['Linda', 3, 0, 2, 0, 'vk.com/linda', 1980, 0.0, 0.0, 100, 'icons/vk32.png'],

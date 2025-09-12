@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else _loadPropsDb();
     appLoadProps();
     prepareSelectors();
+    prepareControls();
 });
 
 function calcSocRating(type_id, selected) {
@@ -464,20 +465,36 @@ function embodySpec(type_id) {
 }
 
 
-// 
+// ok
 function appGetProfileByHash() {
     const profile_id = parseInt(location.hash.split('/').slice(-1)[0] || window.prop_profile[9] || 0);
-    const profile = [...(window.prop_profiles[Math.abs(profile_id)] || ['', -1, -1, window.prop_sex])];
-    return profile;
+    if (profile_id < 0) {
+        return [...characters[Math.abs(profile_id)]];
+    } else if (!profile_id || profile_id == window.prop_profile[9]) {
+        if (window.prop_profile.length) {
+            return window.prop_profile;
+        } else {
+            return ['', -1, -1, window.prop_sex];
+        }
+    } else {
+        let profile;
+        window.prop_profiles.some(p => {
+            if (p[9] == profile_id) {
+                profile = [...p];
+                return true;
+            }
+        });
+        return profile;
+    }
 }
 
 
-// 
+// ok
 function fromCacheOrProfile(index) {
     const profile = appGetProfileByHash();
     const cached = appCachedProfileValue(index);
-    if (index == 8) {
-        return cached || coreStoredImage(profile[9]) || `images/${profile[9]}.jpg`;
+    if (index == 10 && profile[9] >= 0) {
+        return `images/${profile[9]}.jpg`;
     } else {
         if (cached != undefined) {
             return cached;
@@ -488,35 +505,37 @@ function fromCacheOrProfile(index) {
 }
 
 
-// 
+// ok
 function appCachedProfileValue(i, value) {
     if (!window._cached_ || [undefined].includes(i)) {
         window._cached_ = [];
     }
     if (value !== undefined) {
+        if (parseInt(value) == value) value = parseInt(value);
+        else if (parseFloat(value) == value) value = parseFloat(value);
         window._cached_[i] = value;
     } else {
         return window._cached_[i];
     }
 }
 
-
-function updateProfileImage(profile) {
+// ok
+function loadProfileInfo(profile) {
     const section = document.querySelector('[data-name="profile"]');
     if (window.vk_user_id) {
         vkBridge.send('VKWebAppGetUserInfo', { 
             user_ids: `${window.vk_user_id}`, 
         })
         .then(data => {
-            if (data.id) {
-                profile[10] = data.photo_200;
-                profile[0] = `${data.first_name} ${data.last_name}`;
-                profile[5] = `https://vk.ru/id${data.id}`;
-            }
-            if (location.hash.slice[1, 8] == 'profile' && appGetProfileByHash()[9] == profile[9]) {
-                section.querySelector('name="name"').value = profile[0];
+            if (data.id && location.hash.slice(1, 8) == 'profile' && appGetProfileByHash()[9] == profile[9]) {
+                appCachedProfileValue(10, data.photo_200);
+                appCachedProfileValue(0, `${data.first_name} ${data.last_name}`);
+                appCachedProfileValue(5, `https://vk.ru/id${data.id}`);
+                section.querySelector('[name="name"]').value = profile[0];
                 section.querySelector('.badge i').style.backgroundImage = `url("${profile[10]}")`;
-                section.querySelector('name="link"').value = profile[5];
+                let link = section.querySelector('[name="link"]');
+                link.value = profile[5];
+                link.disabled = true;
             }
         });
     }
@@ -529,21 +548,39 @@ function embodyProfile() {
         appCachedProfileValue();
     }
     const profile = appGetProfileByHash();
-    updateProfileImage(profile);
-    //~ 
     const section = document.querySelector('[data-name="profile"]');
-    section.querySelectorAll('.hint div').forEach(h => {
+    section.querySelectorAll('.hint>div').forEach(h => {
         h.innerHTML = '';
         h.parentNode.hidden = true;
     });
     const inputs = section.querySelectorAll('input, select');
-    inputs.forEach(i => {
-        if (profile[9] == window.prop_profile[9]) {
+    const button = section.querySelector('button');
+    if (profile[9] == window.prop_profile[9]) {
+        loadProfileInfo(profile);
+        section.querySelector('[data-part="additional"]').hidden = false;
+        section.querySelector('h2').innerText = 'Мой профиль';
+        button.innerText = 'Сохранить'
+        button.className = 'grow';
+        button.disabled = true;
+        inputs.forEach(i => {
             i.disabled = false;
+        });
+    } else {
+        button.innerText = 'Удалить'
+        button.className = 'deny';
+        if (profile[9] < 0) {
+            section.querySelector('[data-part="additional"]').hidden = true;
+            section.querySelector('h2').innerText = 'Персонаж';
+            button.disabled = true;
         } else {
-            i.disabled = true;
+            section.querySelector('[data-part="additional"]').hidden = false;
+            section.querySelector('h2').innerText = 'Без верификации';
+            button.disabled = false;
         }
-    });
+        inputs.forEach(i => {
+            i.disabled = true;
+        });
+    }
     const [
         input_name,
         soc_selector,
@@ -554,23 +591,18 @@ function embodyProfile() {
         input_year,
         ] = inputs;
     const image = document.getElementById('badge-place');
-    //~ image.style.height = `${image.offsetHeight}px` 
-    const button = section.querySelector('button');
     input_name.value = fromCacheOrProfile(0);
+    const lat = fromCacheOrProfile(7);
+    const lon = fromCacheOrProfile(8);
+    input_location.value = lat && lon && `${lat}, ${lon}` || '';
+    input_year.value = fromCacheOrProfile(6) || '';
     soc_selector.value = fromCacheOrProfile(1);
-    changedProfile(soc_selector.name, soc_selector.value);
+    changedProfile(0, soc_selector.name, soc_selector.value);
     psy_selector.value = fromCacheOrProfile(2);
-    changedProfile(psy_selector.name, psy_selector.value);
+    changedProfile(0, psy_selector.name, psy_selector.value);
     sex_selector.value = fromCacheOrProfile(3);
-    image.innerHTML = htmlBadge(profile[10] || fromCacheOrProfile(10), input_name.value);
-    if (profile[9] === 0) {
-        input_name.disabled = true;
-    } else if ('1 2 3 4 5 6 7 8 9'.includes(profile[9])) {
-        soc_selector.disabled = true;
-        psy_selector.disabled = true;
-    }
-    button.innerText = 'Сохранить'
-    button.disabled = true;
+    appCachedProfileValue(3, fromCacheOrProfile(3));
+    image.innerHTML = htmlBadge(fromCacheOrProfile(10), input_name.value);
     fixLayout();
 }
 
@@ -597,43 +629,105 @@ function prepareSelectors() {
 }
 
 
+// ok
+function isChanged() {
+    const profile = appGetProfileByHash();
+    if (window._cached_) {
+        return window._cached_.some((v, i) => {
+            if (v != profile[i]) {
+                return true;
+            }
+        });
+    } else {
+        return false;
+    }
+}
+
+
+// ok
+function isComplete() {
+    const profile = appGetProfileByHash();
+    var result = true;
+    for (let i = 0; i < 9; i++) {
+        if (i != 4) {
+            if (i > 0 && i < 3 && profile[i] < 0 && (!window._cached_ || !window._cached_[i] < 0)) {
+                result = false;
+            } else if (!profile[i] && (!window._cached_ || !window._cached_[i])) {
+                result = false;
+            }
+        }
+    }
+    return result;
+}
+
+function prepareControls() {
+    document.querySelectorAll('[data-name="profile"] select').forEach(c => {
+        c.addEventListener('change', changedProfile);
+        
+    });
+    document.querySelectorAll('[data-name="profile"] input').forEach(c => {
+        c.addEventListener('keyup', changedProfile);
+        c.addEventListener('change', changedProfile);
+    });
+}
+
+
 // 
-function changedProfile(name, value) {
+function changedProfile(event, name, value) {
+    if (event && event.target.disabled) return;
     name = name || event.target.name;
     value = value || event.target.value;
+    console.log(name, value);
     const profile = appGetProfileByHash();
-    const edited = getEditedProfileValues();
     const section = document.querySelector('[data-name="profile"]');
     const button = section.querySelector('button');
-    if (['test-s', 'test-p'].includes(name) && value == 'test') {
+    if (['test-s', 'test-p', 'location'].includes(name) && value == 'test') {
         location.hash = `${name}/${profile[9]}`;
         return;
+    } else {
+        appCachedProfileValue(profile_map.indexOf(name), value);
     }
-    //~ if (name == 'name' && value == '-reset') {
-        //~ localStorage.clear();
-        //~ for (k in window.prop_stored) {
-            //~ delete window[k];
-        //~ }
-        //~ _reset();
-        //~ location.hash = '';
-        //~ return;
-    //~ }
     setTimeout(() => {
-        if ((profile[0] || edited[0]) && edited.toString() != profile.toString()) {
+        if (isChanged() && isComplete() && !appCachedProfileValue(0)) {
+            //~ button.innerText = 'Удалить';
+            //~ button.className = 'deny';
             button.disabled = false;
         } else {
-            button.disabled = true;
+            //~ button.innerText = 'Сохранить';
+            //~ button.className = 'grow';
+            if (isChanged() && isComplete()) {
+                button.disabled = false;
+            } else {
+                button.disabled = true;
+            }
         }
         const hints = section.querySelectorAll('.hint div');
         if (name == 'name') {
             let input_name = section.querySelector('input[name="name"]');
             input_name.value = value.replaceAll(/[<>]|^\s+$/g, '');
-            if (!input_name.value && profile[0]) button.innerText = 'Удалить';
-            else button.innerText = 'Сохранить';
-            let image = document.getElementById('badge-place');
-            let image_url = image.querySelector('i[style]').style.backgroundImage.slice(5, -2);
+            let image = section.querySelector('#badge-place');
             image.innerHTML = htmlBadge(profile[10], value);
-            appCachedProfileValue(0, value);
+        } else if (name == 'year') {
+            let input_year = section.querySelector('input[name="year"]');
+            let val = Math.abs(parseInt(input_year.value));
+            if (!val) {
+                input_year.value = '';
+            } else if (val != input_year.value) {
+                input_year.value = val;
+            }
+        } else if (name == 'location') {
+            let input_location = section.querySelector('input[name="location"]');
+            let [lat, lon] = input_location.value.matchAll(/-?\d+\.\d+/g).toArray();
+            lat = lat && lat[0];
+            lon = lon && lon[0];
+            if (lat && lon) {
+                appCachedProfileValue(profile_map.indexOf('lat'), lat);
+                appCachedProfileValue(profile_map.indexOf('lon'), lon);
+                input_location.value = `${lat}, ${lon}`;
+            } else {
+                input_location.value = '';
+            }
+            //~ input_name.value = value.replaceAll(/[<>]|^\s+$/g, '');
         } else if (name.split('-').slice(-1)[0] == 's') {
             if (parseInt(value) >= 0) {
                 hints[0].innerHTML = document.querySelector(`[data-name="spec-s/${value}"]`).innerHTML;
@@ -658,31 +752,31 @@ function changedProfile(name, value) {
 
 
 // 
-function getEditedProfileValues() {
-    const section = document.querySelector('[data-name="profile"]');
-    const [
-        input_name,
-        soc_selector,
-        psy_selector,
-        sex_selector,
-        input_link,
-        input_location,
-        input_year,
-        ] = section.querySelectorAll('input, select');
-    const values = [
-        input_name.value.replaceAll(/^\s+$/g, ''),
-        parseInt(soc_selector.value),
-        parseInt(psy_selector.value),
-        parseInt(sex_selector.value),
-        null, //is_verified
-        input_link.value,
-        input_year.value,
-        input_location.value.split(/,\s*/)[0],
-        input_location.value.split(/,\s*/)[1],
-        appGetProfileByHash()[9],
-        ];
-    return values;
-}
+//~ function getEditedProfileValues() {
+    //~ const section = document.querySelector('[data-name="profile"]');
+    //~ const [
+        //~ input_name,
+        //~ soc_selector,
+        //~ psy_selector,
+        //~ sex_selector,
+        //~ input_link,
+        //~ input_location,
+        //~ input_year,
+        //~ ] = section.querySelectorAll('input, select');
+    //~ const values = [
+        //~ input_name.value.replaceAll(/^\s+$/g, ''),
+        //~ parseInt(soc_selector.value),
+        //~ parseInt(psy_selector.value),
+        //~ parseInt(sex_selector.value),
+        //~ null, //is_verified
+        //~ input_link.value,
+        //~ input_year.value,
+        //~ input_location.value.split(/,\s*/)[0],
+        //~ input_location.value.split(/,\s*/)[1],
+        //~ appGetProfileByHash()[9],
+        //~ ];
+    //~ return values;
+//~ }
 
 
 // 
@@ -1045,14 +1139,15 @@ function find() {
 }
 
 function edit() {
+    const values = window._cached_;
     const data = {
-        name: 'John Doe',
-        link: 'https://vk.com/qwe',
-        image: 'qwe',
-        params: '',
-        secret: '',
+        name: values[0],
+        link: values[5],
+        image: values[10],
+        params: location.search,
+        secret: values[12],
     };
-    fetch(`${database_url}/edit/${stype}/${ptype}/${sex}/${year}/${lat}/${lon}/${id}`, {
+    fetch(`${database_url}/edit/${values[1]}/${values[2]}/${values[3]}/${values[6]}/${values[7]}/${values[8]}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -1067,6 +1162,8 @@ function edit() {
     })
     .then(data => {
         console.log('Success:', data);
+        window.prop_profile[9] = data[id];
+        appSaveProps('prop_profile');
     })
     .catch(error => {
         console.error('Error:', error);
@@ -1076,30 +1173,31 @@ function edit() {
 
 function saveProfile() {
     // if not vk and not bastion -- do not save profile on server
-    const values = getEditedProfileValues();
-    var ok = true;
-    window.prop_profiles.some((val, i) => {
-        if (val && val[0] == values[0] && i != values[9]) {
-            ok = confirm('Профиль с таким именем уже существует. Продолжить сохранение?');
-            return true;
-        }
-    });
-    if (!ok) return;
-    if ([NaN].includes(values[9])) {
-        coreStoredImage(window.prop_profiles.length, appCachedProfileValue(8));
-        window.prop_profiles.push(values.slice(0, 3));
-        history.back();
-    } else if (!values[0]) {
-        window.prop_profiles[values[9]] = null;
-        while (window.prop_profiles.length > 10 && !window.prop_profiles.slice(-1)[0]) {
-            window.prop_profiles.pop();
-        }
-        coreStoredImage(values[9], null);
-        location.hash = '-main';
-    } else {
-        window.prop_profiles[values[9]] = values.slice(0, 3);
-        coreStoredImage(values[9], appCachedProfileValue(8));
-        history.back();
-    }
-    appSaveProps('prop_profiles');
+    edit();
+    history.back();
+    //~ var ok = true;
+    //~ window.prop_profiles.some((val, i) => {
+        //~ if (val && val[0] == values[0] && i != values[9]) {
+            //~ ok = confirm('Профиль с таким именем уже существует. Продолжить сохранение?');
+            //~ return true;
+        //~ }
+    //~ });
+    //~ if (!ok) return;
+    //~ if ([NaN].includes(values[9])) {
+        //~ coreStoredImage(window.prop_profiles.length, appCachedProfileValue(8));
+        //~ window.prop_profiles.push(values.slice(0, 3));
+        //~ history.back();
+    //~ } else if (!values[0]) {
+        //~ window.prop_profiles[values[9]] = null;
+        //~ while (window.prop_profiles.length > 10 && !window.prop_profiles.slice(-1)[0]) {
+            //~ window.prop_profiles.pop();
+        //~ }
+        //~ coreStoredImage(values[9], null);
+        //~ location.hash = '-main';
+    //~ } else {
+        //~ window.prop_profiles[values[9]] = values.slice(0, 3);
+        //~ coreStoredImage(values[9], appCachedProfileValue(8));
+        //~ history.back();
+    //~ }
+    //~ appSaveProps('prop_profiles');
 }
