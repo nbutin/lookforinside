@@ -527,15 +527,16 @@ function loadProfileInfo(profile) {
             user_ids: `${window.vk_user_id}`, 
         })
         .then(data => {
+            console.log(data);
             if (data.id && location.hash.slice(1, 8) == 'profile' && appGetProfileByHash()[9] == profile[9]) {
+                let name = `${data.first_name} ${data.last_name}`;
+                let url = `https://vk.ru/id${data.id}`;
                 appCachedProfileValue(10, data.photo_200);
-                appCachedProfileValue(0, `${data.first_name} ${data.last_name}`);
-                appCachedProfileValue(5, `https://vk.ru/id${data.id}`);
-                section.querySelector('[name="name"]').value = profile[0];
-                section.querySelector('.badge i').style.backgroundImage = `url("${profile[10]}")`;
-                let link = section.querySelector('[name="link"]');
-                link.value = profile[5];
-                link.disabled = true;
+                appCachedProfileValue(0, name);
+                appCachedProfileValue(5, url);
+                section.querySelector('[name="name"]').value = name;
+                section.querySelector('.badge i').style.backgroundImage = `url("${data.photo_200}")`;
+                section.querySelector('[name="link"]').value = url;
             }
         });
     }
@@ -681,7 +682,7 @@ function changedProfile(event, name, value) {
     const profile = appGetProfileByHash();
     const section = document.querySelector('[data-name="profile"]');
     const button = section.querySelector('button');
-    if (['test-s', 'test-p', 'location'].includes(name) && value == 'test') {
+    if (['test-s', 'test-p'].includes(name) && value == 'test') {
         location.hash = `${name}/${profile[9]}`;
         return;
     } else {
@@ -746,7 +747,9 @@ function changedProfile(event, name, value) {
                 hints[1].parentNode.hidden = true;
             }
         }
-    fixLayout();
+        if (['test-s', 'test-p'].includes(name)) {
+            fixLayout();
+        }
     }, 1);
 }
 
@@ -1162,7 +1165,7 @@ function edit() {
     })
     .then(data => {
         console.log('Success:', data);
-        window.prop_profile[9] = data[id];
+        window.prop_profile[9] = data.id;
         appSaveProps('prop_profile');
     })
     .catch(error => {
