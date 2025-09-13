@@ -556,6 +556,8 @@ function embodyProfile() {
     });
     const inputs = section.querySelectorAll('input, select');
     const button = section.querySelector('button');
+    const image = document.getElementById('badge-place');
+    image.innerHTML = htmlBadge();
     if (profile[9] == window.prop_profile[9]) {
         loadProfileInfo(profile);
         section.querySelector('[data-part="additional"]').hidden = false;
@@ -591,7 +593,6 @@ function embodyProfile() {
         input_location,
         input_year,
         ] = inputs;
-    const image = document.getElementById('badge-place');
     input_name.value = fromCacheOrProfile(0);
     const lat = fromCacheOrProfile(7);
     const lon = fromCacheOrProfile(8);
@@ -603,7 +604,6 @@ function embodyProfile() {
     changedProfile(0, psy_selector.name, psy_selector.value);
     sex_selector.value = fromCacheOrProfile(3);
     appCachedProfileValue(3, fromCacheOrProfile(3));
-    image.innerHTML = htmlBadge(fromCacheOrProfile(10), input_name.value);
     fixLayout();
 }
 
