@@ -157,7 +157,7 @@ function calcAllRatings() {
 
 
 function appGetSelected() {
-    if (window.prop_profile[9]) {
+    if (window.prop_profile[9] || window.prop_profile[9] === 0) {
         return window.prop_profile[9];
     } else {
         let profile_id;
@@ -1129,10 +1129,13 @@ function find() {
     const delta = window.prop_distance / 100;
     fetch(`${database_url}/find/${stype}/${ptype}/${sex}/${window.prop_activity}/${from_year}/${to_year}/${lat - delta}/${lat + delta}/${lon - delta}/${lon + delta}/${is_verified}/${deleted}/${id}`)
     .then(response => {
+        if (!resp.ok) {
+            throw new Error('Finding operation failed');
+        }
         return response.json();
     })
     .then(data => {
-        console.log('Success:', data);
+        console.log('Found:', data);
         window.prop_profiles = data;
         embodyMain();
     })
@@ -1141,7 +1144,7 @@ function find() {
     });
 }
 
-function edit() {
+function dbEdit() {
     const values = window._cached_;
     const data = {
         name: values[0],
@@ -1157,14 +1160,16 @@ function edit() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    .then(resp => {
+        if (!resp.ok) {
+            window.prop_profile[9] = 0;
+            appSaveProps('prop_profile');
+            throw new Error('Profile has not been edited in DB');
         }
-        return response.json();
+        return resp.json();
     })
     .then(data => {
-        console.log('Success:', data);
+        console.log('Profile has been edited in DB:', data);
         window.prop_profile[9] = data.id;
         appSaveProps('prop_profile');
     })
@@ -1176,31 +1181,7 @@ function edit() {
 
 function saveProfile() {
     // if not vk and not bastion -- do not save profile on server
-    edit();
+    dbEdit();
     history.back();
-    //~ var ok = true;
-    //~ window.prop_profiles.some((val, i) => {
-        //~ if (val && val[0] == values[0] && i != values[9]) {
-            //~ ok = confirm('Профиль с таким именем уже существует. Продолжить сохранение?');
-            //~ return true;
-        //~ }
-    //~ });
-    //~ if (!ok) return;
-    //~ if ([NaN].includes(values[9])) {
-        //~ coreStoredImage(window.prop_profiles.length, appCachedProfileValue(8));
-        //~ window.prop_profiles.push(values.slice(0, 3));
-        //~ history.back();
-    //~ } else if (!values[0]) {
-        //~ window.prop_profiles[values[9]] = null;
-        //~ while (window.prop_profiles.length > 10 && !window.prop_profiles.slice(-1)[0]) {
-            //~ window.prop_profiles.pop();
-        //~ }
-        //~ coreStoredImage(values[9], null);
-        //~ location.hash = '-main';
-    //~ } else {
-        //~ window.prop_profiles[values[9]] = values.slice(0, 3);
-        //~ coreStoredImage(values[9], appCachedProfileValue(8));
-        //~ history.back();
-    //~ }
-    //~ appSaveProps('prop_profiles');
 }
+

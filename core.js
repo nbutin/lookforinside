@@ -267,10 +267,8 @@ function appSaveProps(list) {
         || typeof(list) == 'string' && [list]
         || Object.keys(window.prop_stored  || {});
     list = ['prop_version', 'prop_stored', ...list];
-    if (!window.non_saving_mode) {
-        _savePropsLocal(list);
-        _savePropsVk(list.filter(name => name.slice(0, 5) == 'prop_'));
-    }
+    _savePropsLocal(list);
+    _savePropsVk(list.filter(name => name.slice(0, 5) == 'prop_'));
 }
 
 
