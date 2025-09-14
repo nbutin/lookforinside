@@ -111,7 +111,9 @@ function initVk() {
         console.log('vkBridge.VKWebAppInit returns', data)
         if (!data.result) throw new Error();
         console.log('vkBridge initialized');
-        _loadPropsVk();
+localStorage.clear();
+appSaveProps();
+        //~ _loadPropsVk();
         document.body.classList.add('-vk');
         window.vk_is_recommended = 
             location.search.includes('vk_is_recommended=1');
