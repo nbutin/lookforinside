@@ -26,8 +26,8 @@ function _reset() {
 
 
 _reset();
-localStorage.clear();
-appSaveProps();
+//~ localStorage.clear();
+//~ appSaveProps();
 
 
 document.addEventListener('DOMContentLoaded', () => {
