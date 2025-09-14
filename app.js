@@ -51,8 +51,9 @@ window.embodying_triggers = {
 
 
 function calcSocRating(type_id, selected) {
-    if (type_id < 0 || window.prop_profiles[Math.abs(appGetSelected())][1] < 0) return [-1, -1, []];
-    selected = selected || soc_types[window.prop_profiles[Math.abs(appGetSelected())][1]];
+    var profile = appGetProfileByHash(appGetSelected());
+    if (type_id < 0 || profile[1] < 0) return [-1, -1, []];
+    selected = selected || soc_types[profile[1]];
     const tested = soc_types[type_id];
     var n1 = 0;
     var r = 0;
@@ -96,8 +97,9 @@ function calcSocRating(type_id, selected) {
 
 
 function calcPsyRating(type_id, selected) {
-    if (type_id < 0 || window.prop_profiles[Math.abs(appGetSelected())][2] < 0) return [-1, -1, []];
-    selected = selected || psy_types[window.prop_profiles[Math.abs(appGetSelected())][2]];
+    var profile = appGetProfileByHash(appGetSelected());
+    if (type_id < 0 || profile[2] < 0) return [-1, -1, []];
+    selected = selected || psy_types[profile[2]];
     const tested = psy_types[type_id];
     var n1 = 0;
     var r = 0;
@@ -261,7 +263,7 @@ function embodyMain() {
         window.prop_profiles = [...characters];
         var first = calcRating(window.prop_profiles[Math.abs(appGetSelected())]);
     }
-    let hint = document.querySelector('main>div.deny');
+    let hint = document.querySelector('main>div.hint.deny');
     hint.hidden = window.prop_profiles.length > 48 && true || false;
     var items = [first, ...calcAllRatings()];
     items = items;
@@ -385,25 +387,22 @@ function getColorMark(text) {
 function formatRatingDetails(items) {
     var html = '';
     items.forEach(i => {
-        html += `<li class="${getColorMark(i)}-notable">✔ ${i.replace(' и ', ' и&nbsp;')},</li>`;
+        html += `<li class="${getColorMark(i)}">✔ ${i.replace(' и ', ' и&nbsp;')},</li>`;
     });
     return html && html.slice(0, -6) + '.</li>' || '';
 }
 
 
 function correctVerifyHeader(header, status) {
-    header.classList.remove('notable-orange');
-    header.classList.remove('notable-red');
-    header.classList.remove('notable-green');
-    if (status == -1) {
-        header.innerHTML = '<h2>Герои известных произведений</h2>';
-        header.classList.add('notable-orange');
-    } else if (status == 1) {
-        header.innerHTML = `<h2><a onclick="location.hash = '-verify'" style="background:inherit; color:inherit">Профиль, прошедший проверку</a></h2>`;
-        header.classList.add('notable-green');
+    if (status === undefined || status == -1) {
+        header.innerText = 'Персонаж';
+        header.className = 'care';
+    } else if (status) {
+        header.innerHTML = `<a onclick="location.hash = 'verify'" style="background:inherit; color:inherit">Профиль прошёл проверку</a>`;
+        header.className = 'grow';
     } else {
-        header.innerHTML = `<h2><a onclick="location.hash = '-verify'" style="background:inherit; color:inherit">Неверифицированный профиль</a></h2>`;
-        header.classList.add('notable-red');
+        header.innerHTML = `<a onclick="location.hash = 'verify'" style="background:inherit; color:inherit">Неверифицированный профиль</a>`;
+        header.className = 'deny';
     }
 }
 
@@ -411,27 +410,23 @@ function correctVerifyHeader(header, status) {
 // 
 function embodyMatching() {
     const id1 = appGetSelected();
-    const selected = window.prop_profiles[id1];
+    const selected = appGetProfileByHash(id1);
     const matched = appGetProfileByHash();
     const id2 = matched[9];
-    const header = document.querySelector('.-matching.header');
+    const header = document.querySelector('[data-name="matching"] h2');
     correctVerifyHeader(header, matched[4]);
     var disabled = '';
-    if (matched[4] == -1) disabled = 'disabled="1"';
-    if (id1 == 0) link1e = '-edit-0';
-    else if ([1,2,3,4,5,6,7,8,9].includes(id1)) link1e = `-edit-r-${id1}`;
-    else link1e = `-edit-w-${id1}`;
-    if (id2 == 0) link2e = '-edit-0';
-    else if ([1,2,3,4,5,6,7,8,9].includes(id2)) link2e = `-edit-r-${id2}`;
-    else link2e = `-edit-w-${id2}`;
-    var link1s = `-spec-s-${selected[1]}`;
-    var link2s = `-spec-s-${matched[1]}`;
-    var link1p = `-spec-p-${selected[2]}`;
-    var link2p = `-spec-p-${matched[2]}`;
-    var url1 = selected[6] || appStoredImage(id1);
-    var url2 = matched[6] || appStoredImage(id2);
-    var badge1 = coreBadge(url1, selected[0], `location.hash = '${link1e}'`);
-    var badge2 = coreBadge(url2, matched[0], `location.hash = '${link2e}'`);
+    if (matched[4] === undefined) disabled = 'disabled="1"';
+    link1e = `profile/${id1}`;
+    link2e = `profile/${id2}`;
+    var link1s = `spec-s/${selected[1]}`;
+    var link2s = `spec-s/${matched[1]}`;
+    var link1p = `spec-p/${selected[2]}`;
+    var link2p = `spec-p/${matched[2]}`;
+    var url1 = selected[10];
+    var url2 = matched[10];
+    var badge1 = htmlBadge(url1, selected[0], `location.hash = '${link1e}'`);
+    var badge2 = htmlBadge(url2, matched[0], `location.hash = '${link2e}'`);
     const rating = calcRating(matched);
     if (rating[0] == rating[1]) var sum_percent = rating[0];
     else var sum_percent = `от ${rating[0]} до ${rating[1]}`;
@@ -609,11 +604,13 @@ function embodyProfile() {
     const inputs = section.querySelectorAll('input, select');
     const button = section.querySelector('button');
     const image = document.getElementById('badge-place');
+    const h2 = section.querySelector('h2');
     image.innerHTML = htmlBadge();
     if (profile[9] == window.prop_profile[9]) {
         loadProfileInfo(profile);
         section.querySelector('[data-part="additional"]').hidden = false;
-        section.querySelector('h2').innerText = 'Мой профиль';
+        h2.innerText = 'Мой профиль';
+        h2.className = '';
         button.innerText = 'Сохранить'
         button.className = 'grow';
         button.disabled = true;
@@ -625,11 +622,18 @@ function embodyProfile() {
         button.className = 'deny';
         if (profile[9] < 0) {
             section.querySelector('[data-part="additional"]').hidden = true;
-            section.querySelector('h2').innerText = 'Персонаж';
+            h2.innerText = 'Персонаж';
+            h2.className = 'care';
             button.disabled = true;
         } else {
             section.querySelector('[data-part="additional"]').hidden = false;
-            section.querySelector('h2').innerText = 'Без верификации';
+            if (profile[4]) {
+                h2.innerText = 'Верифицированный профиль';
+                h2.className = 'grow';
+            } else {
+                h2.innerText = 'Неверифицированный профиль';
+                h2.className = 'deny';
+            }
             button.disabled = false;
         }
         inputs.forEach(i => {
@@ -753,7 +757,7 @@ function changedProfile() {
         } else {
             //~ button.innerText = 'Сохранить';
             //~ button.className = 'grow';
-            if (isChanged() && isComplete()) {
+            if (isChanged() && isComplete() && appCachedProfileValue(1) >= 0 && appCachedProfileValue(2) >= 0) {
                 button.disabled = false;
             } else {
                 button.disabled = true;
