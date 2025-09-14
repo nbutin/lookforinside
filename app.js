@@ -1,16 +1,17 @@
 const database_url = 'https://shorewards.ru/walkingpuzzles';
 
+
 function _reset() {
     window.prop_version = undefined;
     window.prop_sex = 0;
-    window.prop_mode = 0;
+    window.prop_mode = -1;
     window.prop_distance = 5000;
     window.prop_activity = 14;
     window.prop_age = [18, 99];
-    window.prop_deleted = [];
+    window.prop_deleted = [0];
     window.prop_cached = {
         prop_sex: 0, // 1, 2
-        prop_mode: 0, // 0, 1, 2
+        //~ prop_mode: 0, // -1, 0, 1
         prop_distance: 0,
         prop_activity: 0,
         prop_age: [],
@@ -22,8 +23,20 @@ function _reset() {
     window.prop_profile = [];
     window.prop_profiles = [...characters];
 }
+
+
 _reset();
-//~ window.prop_profile = characters_x[1];
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.vk_user_id = (location.search.match(/vk_user_id=(\d+)/) || [0, 0])[1];
+    appLoadProps();
+    if (window.vk_user_id) initVk();
+    else if (window.self !== window.top) initBastyon();
+    prepareSelectors();
+    prepareControls();
+});
+
 
 window.embodying_triggers = {
     '^main(/.*)?$': embodyMain,
@@ -34,16 +47,6 @@ window.embodying_triggers = {
     '^test-p/.+$': embodyTestP,
 };
 
-
-document.addEventListener('DOMContentLoaded', () => {
-    window.vk_user_id = (location.search.match(/vk_user_id=(\d+)/) || [0, 0])[1];
-    if (window.vk_user_id) initVk();
-    else if (window.self !== window.top) initBastyon();
-    else _loadPropsDb();
-    appLoadProps();
-    prepareSelectors();
-    prepareControls();
-});
 
 function calcSocRating(type_id, selected) {
     if (type_id < 0 || window.prop_profiles[Math.abs(appGetSelected())][1] < 0) return [-1, -1, []];
@@ -89,6 +92,7 @@ function calcSocRating(type_id, selected) {
     return [result, result, txt_comment];
 }
 
+
 function calcPsyRating(type_id, selected) {
     if (type_id < 0 || window.prop_profiles[Math.abs(appGetSelected())][2] < 0) return [-1, -1, []];
     selected = selected || psy_types[window.prop_profiles[Math.abs(appGetSelected())][2]];
@@ -118,9 +122,11 @@ function calcPsyRating(type_id, selected) {
     return [result, result, txt_comment];
 }
 
-function calcRating(profile_id) {
-    const soc_rating = calcSocRating(window.prop_profiles[Math.abs(profile_id)][1]);
-    const psy_rating = calcPsyRating(window.prop_profiles[Math.abs(profile_id)][2]);
+
+// ok
+function calcRating(profile) {
+    const soc_rating = calcSocRating(profile[1]);
+    const psy_rating = calcPsyRating(profile[2]);
     const min_rating = parseInt((
         parseInt(soc_rating[0] >= 0 && `${soc_rating[0]}` || 0) +
         parseInt(psy_rating[0] >= 0 && `${psy_rating[0]}` || 0)
@@ -129,7 +135,7 @@ function calcRating(profile_id) {
         parseInt(soc_rating[1] >= 0 && `${soc_rating[1]}` || 100) +
         parseInt(psy_rating[1] >= 0 && `${psy_rating[1]}` || 100)
     ) / 2);
-    return [min_rating, max_rating, soc_rating[0], psy_rating[0], soc_rating, psy_rating, profile_id];
+    return [min_rating, max_rating, soc_rating[0], psy_rating[0], soc_rating, psy_rating, profile[9]];
 }
 
 
@@ -143,13 +149,13 @@ function sumRating(numbers) {
 }
 
 
-// 
+// ok
 function calcAllRatings() {
     var map = [];
     const selected = appGetSelected();
-    window.prop_profiles.forEach((val, i) => {
-        if (val && selected != i && val[3] != window.prop_profiles[Math.abs(selected)][3]) {
-            map.push(calcRating(i));
+    window.prop_profiles.forEach(p => {
+        if (p && selected != p[9] && p[3] != window.prop_sex) {
+            map.push(calcRating(p));
         }
     });
     return map.sort((a, b) => (sumRating(b) + b[2] / 1000000) - (sumRating(a) + a[2] / 1000000));
@@ -161,7 +167,7 @@ function appGetSelected() {
         return window.prop_profile[9];
     } else {
         let profile_id;
-        window.prop_profiles.some(v => {
+        characters.some(v => {
             if (v && v[3] == window.prop_sex) {
                 profile_id = v[9];
                 return true;
@@ -171,14 +177,26 @@ function appGetSelected() {
     }
 }
 
+function applyFilter() {
+    appKeepProps();
+    if (window.prop_mode == -1) {
+        embodyMain();
+    } else {
+        let button = document.querySelector('main button');
+        button.innerText = 'Ищем...';
+        button.disabled = true;
+        find();
+    }
+}
+
 
 function selectMode() {
     const main = document.querySelector('main');
     const node = event.target;
-    window.prop_mode = node.value;
+    window.prop_mode = parseInt(node.value);
     main.querySelector('div').setAttribute('class', node.dataset.color);
     main.querySelectorAll('input[type="text"]').forEach(i => {
-        if (node.value == '2') {
+        if (node.value == '-1') {
             i.disabled = true;
             main.querySelector('button').innerText = 'Применить';
         } else {
@@ -186,7 +204,6 @@ function selectMode() {
             main.querySelector('button').innerText = 'Найти';
         }
     });
-    appKeepProps(node.name);
 }
 
 function formatNumbers() {
@@ -203,14 +220,13 @@ function formatNumbers() {
         }
     } else {
         if (numbers) {
-            window[node.name] = numbers[0];
+            window[node.name] = parseInt(numbers[0]);
         }
     }
     node.value = eval(node.dataset.format);
-    appKeepProps(node.name);
 }
 
-// 
+// ok
 function embodyMain() {
     if (!window.prop_sex) {
         location.hash = 'start';
@@ -223,16 +239,48 @@ function embodyMain() {
             node.onchange = selectMode;
         }
     });
-    radio_buttons[window.prop_mode].click();
-    document.querySelectorAll('main input[type="text"]').forEach(node => {
+    document.querySelector(`main input[value="${window.prop_mode}"]`).click();
+    document.querySelector('main button').disabled = false;
+    document.querySelectorAll('main input[type="text"]').forEach((node, i) => {
         if (!node.onchange) {
             node.onchange = formatNumbers;
+            if (i == 0) node.value = window.prop_distance;
+            else if (i == 1) node.value = window.prop_activity;
+            else if (i == 1) node.value = window.prop_age;
+            node.dispatchEvent(new Event('change'));
         }
     });
-    const first = calcRating(appGetSelected());
+    if (appGetSelected() >= 0 && window.prop_mode == -1) {
+        window.prop_profiles = [window.prop_profile, ...characters.slice(1)];
+        var first = calcRating(window.prop_profile);
+    } else if (appGetSelected() >= 0) {
+        var first = calcRating(window.prop_profile);
+    } else {
+        window.prop_profiles = [...characters];
+        var first = calcRating(window.prop_profiles[Math.abs(appGetSelected())]);
+    }
+    let hint = document.querySelector('main>div.deny');
+    hint.hidden = window.prop_profiles.length > 48 && true || false;
     var items = [first, ...calcAllRatings()];
     items = items;
     var html = '';
+    const alt_blocks = document.querySelectorAll('main .alt');
+    alt_blocks.forEach(node => {
+        node.hidden = true;
+    });
+    if (window.prop_profile[9] === undefined) {
+        alt_blocks[0].hidden = false;
+    } else if (window.prop_mode == -1){
+        alt_blocks[1].hidden = false;
+    } else {
+        alt_blocks[2].hidden = false;
+        let fields = alt_blocks[2].querySelectorAll('i');
+        let short = alt_blocks[3].querySelector(`[value="${window.prop_mode}"]`).dataset.short;
+        fields[0].innerText = `${short}`;
+        fields[1].innerText = `${window.prop_age[0]}-${window.prop_age[1]}`;
+        fields[2].innerText = `${window.prop_distance}`;
+        fields[3].innerText = `${window.prop_activity}`;
+    }
     const translate = {
         anon: 'none',
         best: 'grow',
@@ -243,7 +291,7 @@ function embodyMain() {
     };
     items.forEach((v, i) => {
         const profile_id = v[6];
-        const profile = window.prop_profiles[Math.abs(profile_id)];
+        const profile = appGetProfileByHash(profile_id);
         let sr = translate[percentToText(v[4][0], v[4][1])];
         let pr = percentToText(v[5][0], v[5][1]);
         if (profile && profile[2] in psy_types) {
@@ -382,7 +430,7 @@ function embodyMatching() {
     var url2 = matched[6] || appStoredImage(id2);
     var badge1 = coreBadge(url1, selected[0], `location.hash = '${link1e}'`);
     var badge2 = coreBadge(url2, matched[0], `location.hash = '${link2e}'`);
-    const rating = calcRating(id2);
+    const rating = calcRating(matched);
     if (rating[0] == rating[1]) var sum_percent = rating[0];
     else var sum_percent = `от ${rating[0]} до ${rating[1]}`;
     if (rating[4][0] > -1) var soc_percent = rating[4][0] + '%';
@@ -466,8 +514,10 @@ function embodySpec(type_id) {
 
 
 // ok
-function appGetProfileByHash() {
-    const profile_id = parseInt(location.hash.split('/').slice(-1)[0] || window.prop_profile[9] || 0);
+function appGetProfileByHash(profile_id) {
+    if (profile_id === undefined) {
+        profile_id = parseInt(location.hash.split('/').slice(-1)[0] || window.prop_profile[9] || 0);
+    }
     if (profile_id < 0) {
         return [...characters[Math.abs(profile_id)]];
     } else if (!profile_id || profile_id == window.prop_profile[9]) {
@@ -514,7 +564,7 @@ function appCachedProfileValue(i, value) {
         if (parseInt(value) == value) value = parseInt(value);
         else if (parseFloat(value) == value) value = parseFloat(value);
         window._cached_[i] = value;
-    } else {
+    } else if (i !== undefined) {
         return window._cached_[i];
     }
 }
@@ -594,16 +644,21 @@ function embodyProfile() {
         input_year,
         ] = inputs;
     input_name.value = fromCacheOrProfile(0);
+    input_name.dispatchEvent(new Event('change'));
+    //~ changedProfile(0, input_name.name, input_name.value);
     const lat = fromCacheOrProfile(7);
     const lon = fromCacheOrProfile(8);
+    input_link.value = fromCacheOrProfile(5) || '';
     input_location.value = lat && lon && `${lat}, ${lon}` || '';
     input_year.value = fromCacheOrProfile(6) || '';
-    soc_selector.value = fromCacheOrProfile(1);
-    changedProfile(0, soc_selector.name, soc_selector.value);
-    psy_selector.value = fromCacheOrProfile(2);
-    changedProfile(0, psy_selector.name, psy_selector.value);
-    sex_selector.value = fromCacheOrProfile(3);
-    appCachedProfileValue(3, fromCacheOrProfile(3));
+    soc_selector.value = `${fromCacheOrProfile(1)}` || -1;
+    soc_selector.dispatchEvent(new Event('change'));
+    //~ changedProfile(0, soc_selector.name, soc_selector.value);
+    psy_selector.value = `${fromCacheOrProfile(2)}` || -1;
+    psy_selector.dispatchEvent(new Event('change'));
+    //~ changedProfile(0, psy_selector.name, psy_selector.value);
+    appCachedProfileValue(3, fromCacheOrProfile(3) || window.prop_sex);
+    sex_selector.value = appCachedProfileValue(3);
     fixLayout();
 }
 
@@ -650,10 +705,10 @@ function isComplete() {
     const profile = appGetProfileByHash();
     var result = true;
     for (let i = 0; i < 9; i++) {
-        if (i != 4) {
-            if (i > 0 && i < 3 && profile[i] < 0 && (!window._cached_ || !window._cached_[i] < 0)) {
+        if (![4, 5].includes(i)) {
+            if ([1, 2].includes(i) && profile[i] < 0 && (!window._cached_ || !window._cached_[i] < 0)) {
                 result = false;
-            } else if (!profile[i] && (!window._cached_ || !window._cached_[i])) {
+            } else if (![1, 2].includes(i) && !profile[i] && (!window._cached_ || !window._cached_[i])) {
                 result = false;
             }
         }
@@ -674,11 +729,11 @@ function prepareControls() {
 
 
 // 
-function changedProfile(event, name, value) {
-    if (event && event.target.disabled) return;
-    name = name || event.target.name;
-    value = value || event.target.value;
-    console.log(name, value);
+function changedProfile() {
+    //~ if (event && event.target.disabled) return;
+    name = event.target.name;
+    value = event.target.value;
+    //~ console.log(name, value);
     const profile = appGetProfileByHash();
     const section = document.querySelector('[data-name="profile"]');
     const button = section.querySelector('button');
@@ -708,6 +763,9 @@ function changedProfile(event, name, value) {
             input_name.value = value.replaceAll(/[<>]|^\s+$/g, '');
             let image = section.querySelector('#badge-place');
             image.innerHTML = htmlBadge(profile[10], value);
+        } else if (name == 'sex') {
+            window.prop_sex = parseInt(value);
+            appKeepProps('prop_sex');
         } else if (name == 'year') {
             let input_year = section.querySelector('input[name="year"]');
             let val = Math.abs(parseInt(input_year.value));
@@ -886,10 +944,10 @@ function coreStoredImage(id, data) {
 
 
 function homewards() {
-    if (location.hash != '#main') {
-        location.hash = 'main';
-    } else {
+    if (location.hash == '#main' && window.prop_profile[9] === undefined) {
         location.hash = 'start';
+    } else {
+        location.hash = 'main';
     }
 }
 
@@ -1124,19 +1182,20 @@ function start(sex) {
 
 function find() {
     const [stype, ptype, sex, x, y, year, lat, lon, id] = window.prop_profile.slice(1);
-    const [from_year, to_year] = window.prop_age;
+    const from_year = new Date().getFullYear() - window.prop_age[1];
+    const to_year = new Date().getFullYear() - window.prop_age[0];
     const is_verified = window.prop_mode;
     const delta = window.prop_distance / 100;
-    fetch(`${database_url}/find/${stype}/${ptype}/${sex}/${window.prop_activity}/${from_year}/${to_year}/${lat - delta}/${lat + delta}/${lon - delta}/${lon + delta}/${is_verified}/${deleted}/${id}`)
-    .then(response => {
+    fetch(`${database_url}/find/${stype}/${ptype}/${sex}/${window.prop_activity}/${from_year}/${to_year}/${lat - delta}/${lat + delta}/${lon - delta}/${lon + delta}/${is_verified}/${window.prop_deleted}/${id}`)
+    .then(resp => {
         if (!resp.ok) {
             throw new Error('Finding operation failed');
         }
-        return response.json();
+        return resp.json();
     })
     .then(data => {
         console.log('Found:', data);
-        window.prop_profiles = data;
+        window.prop_profiles = [window.prop_profile, ...data];
         embodyMain();
     })
     .catch(error => {
@@ -1145,15 +1204,20 @@ function find() {
 }
 
 function dbEdit() {
-    const values = window._cached_;
-    const data = {
-        name: values[0],
-        link: values[5],
-        image: values[10],
-        params: location.search,
-        secret: values[12],
-    };
-    fetch(`${database_url}/edit/${values[1]}/${values[2]}/${values[3]}/${values[6]}/${values[7]}/${values[8]}`, {
+}
+
+// ok
+function saveProfile() {
+    for (let i=0; i<11; i++) {
+        if (window._cached_[i] !== undefined) {
+            window.prop_profile[i] = window._cached_[i];
+        }
+    }
+    window.prop_profile[9] = window.prop_profile[9] || 0;
+    appSaveProps('prop_profile');
+    const p = window.prop_profile;
+    const data = {name: p[0], link: p[5], image: p[10], params: location.search, secret: p[12]};
+    fetch(`${database_url}/edit/${p[1]}/${p[2]}/${p[3]}/${p[6]}/${p[7]}/${p[8]}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -1162,8 +1226,6 @@ function dbEdit() {
     })
     .then(resp => {
         if (!resp.ok) {
-            window.prop_profile[9] = 0;
-            appSaveProps('prop_profile');
             throw new Error('Profile has not been edited in DB');
         }
         return resp.json();
@@ -1176,12 +1238,26 @@ function dbEdit() {
     .catch(error => {
         console.error('Error:', error);
     });
-}
-
-
-function saveProfile() {
-    // if not vk and not bastion -- do not save profile on server
-    dbEdit();
     history.back();
 }
+
+
+function displayFilter(alt, mode) {
+    const alt_blocks = document.querySelectorAll('main .alt');
+    alt_blocks.forEach(node => {
+        node.hidden = true;
+    });
+    if (alt !== undefined) {
+        alt_blocks[alt].hidden = false;
+        if (mode !== undefined) {
+            document.querySelector(`main input[value="${mode}"]`).click();
+        }
+    } else if (window.prop_profile[9] === undefined) {
+        alt_blocks[0].hidden = false;
+    } else if (window.prop_mode == -1){
+        alt_blocks[1].hidden = false;
+    }
+    fixLayout();
+}
+
 
