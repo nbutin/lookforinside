@@ -7,7 +7,7 @@ function _reset() {
     window.prop_mode = -1;
     window.prop_distance = 5000;
     window.prop_activity = 14;
-    window.prop_age = [18, 99];
+    window.prop_age = [18, 81];
     window.prop_deleted = [0];
     window.prop_cached = {
         prop_sex: 0, // 1, 2
@@ -26,8 +26,6 @@ function _reset() {
 
 
 _reset();
-//~ localStorage.clear();
-//~ appSaveProps();
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -250,7 +248,7 @@ function embodyMain() {
             node.onchange = formatNumbers;
             if (i == 0) node.value = window.prop_distance;
             else if (i == 1) node.value = window.prop_activity;
-            else if (i == 1) node.value = window.prop_age;
+            else node.value = window.prop_age;
             node.dispatchEvent(new Event('change'));
         }
     });
@@ -371,6 +369,17 @@ function percentToText(n1, n2) {
 
 
 // 
+function percentToClass(n1, n2) {
+    if (n1 < 0 || n2 - n1 > 50) return 'rest';
+    else if (n1 >= 80) return 'grow';
+    else if (n1 >= 60) return 'keep';
+    else if (n1 >= 45) return 'know';
+    else if (n1 >= 30) return 'pick';
+    else return 'deny';
+}
+
+
+// 
 function getColorMark(text) {
     var result = '';
     Object.entries(marks).some(i => {
@@ -401,7 +410,7 @@ function correctVerifyHeader(header, status) {
         header.innerHTML = `<a onclick="location.hash = 'verify'" style="background:inherit; color:inherit">Профиль прошёл проверку</a>`;
         header.className = 'grow';
     } else {
-        header.innerHTML = `<a onclick="location.hash = 'verify'" style="background:inherit; color:inherit">Неверифицированный профиль</a>`;
+        header.innerHTML = `<a onclick="location.hash = 'verify'" style="background:inherit; color:inherit">Непроверенный профиль</a>`;
         header.className = 'deny';
     }
 }
@@ -434,74 +443,39 @@ function embodyMatching() {
     else var soc_percent = 'неизвестно';
     if (rating[5][0] > -1) var psy_percent = rating[5][0] + '%';
     else var psy_percent = 'неизвестно';
-    var sum_rating = percentToText(rating[0], rating[1]);
-    var soc_rating = percentToText(rating[4][0], rating[4][1]);
-    var psy_rating = percentToText(rating[5][0], rating[5][1]);
+    var sum_rating = percentToClass(rating[0], rating[1]);
+    var soc_rating = percentToClass(rating[4][0], rating[4][1]);
+    var psy_rating = percentToClass(rating[5][0], rating[5][1]);
     var soc_details = formatRatingDetails(rating[4][2]);
     var psy_details = formatRatingDetails(rating[5][2]);
-    document.getElementById('sum-percent').innerText = sum_percent;
+    //~ document.getElementById('sum-percent').innerText = sum_percent;
     var html = `
-        <tr class="${sum_rating}">
-            <td>${badge1}</td>
-            <td>${badge2}</td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <h3>По социотипу — ${soc_percent}</h3>
-            </td>
-        </tr>
-        <tr class="${soc_rating}">
-            <td>
-                <div><button onclick="location.hash = '${selected[1] >= 0 && link1s || link1e}'">${selected[1] >= 0 && soc_types[selected[1]][1] || '&nbsp; ? &nbsp;'}</button></div>
-            </td>
-            <td>
-                <div><button onclick="location.hash = '${matched[1] >= 0 && link2s || link2e}'">${matched[1] >= 0 && soc_types[matched[1]][1] || '&nbsp; ? &nbsp;'}</button></div>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <ul id="soc-details">
+        <h3 class="colspan-2">Совместимость — ${sum_percent}%</h3>
+        ${badge1.replace('"badge"', '"badge ' + sum_rating + '"')}
+        ${badge2.replace('"badge"', '"badge ' + sum_rating + '"')}
+        <h3 class="colspan-2">По социотипу — ${soc_percent}</h3>
+        <div class="${soc_rating} left"><button onclick="location.hash = '${selected[1] >= 0 && link1s || link1e}'">${selected[1] >= 0 && soc_types[selected[1]][1] || '&nbsp; ? &nbsp;'}</button></div>
+        <div class="${soc_rating}"><button onclick="location.hash = '${matched[1] >= 0 && link2s || link2e}'">${matched[1] >= 0 && soc_types[matched[1]][1] || '&nbsp; ? &nbsp;'}</button></div>
+        <ul id="soc-details" class="colspan-2">
                     ${soc_details}
                 </ul>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <h3>По психотипу — ${psy_percent}</h3>
-            </td>
-        </tr>
-        <tr class="${psy_rating}">
-            <td>
-                <div><button onclick="location.hash = '${selected[2] >= 0 && link1p || link1e}'">${selected[2] >= 0 && psy_types[selected[2]][1] || '&nbsp; ? &nbsp;'}</button></div>
-            </td>
-            <td>
-                <div><button onclick="location.hash = '${matched[2] >= 0 && link2p || link2e}'">${matched[2] >= 0 && psy_types[matched[2]][1] || '&nbsp; ? &nbsp;'}</button></div>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <ul id="psy-details">
+        <h3 class="colspan-2">По психотипу — ${psy_percent}</h3>
+        <div class="${psy_rating} left"><button onclick="location.hash = '${selected[2] >= 0 && link1p || link1e}'">${selected[2] >= 0 && psy_types[selected[2]][1] || '&nbsp; ? &nbsp;'}</button></div>
+        <div class="${psy_rating}"><button onclick="location.hash = '${matched[2] >= 0 && link2p || link2e}'">${matched[2] >= 0 && psy_types[matched[2]][1] || '&nbsp; ? &nbsp;'}</button></div>
+        <ul id="psy-details" class="colspan-2">
                     ${psy_details}
                 </ul>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <button onclick="location.hash = '${link1e}'">Исправить</button>
-            </td>
-            <td>
-                <button onclick="location.hash = '${link2e}'" class="notable-red" ${disabled}>Удалить</button>
-            </td>
-        </tr>
+        <button onclick="location.hash = '${link1e}'">Исправить</button>
+        <button class="deny" onclick="location.hash = '${link2e}'" ${disabled}>Удалить</button>
     `;
-    document.querySelector('#matching table').innerHTML = html;
+    document.querySelector('#matching .grid').innerHTML = html;
     fixLayout();
 }
 
 
 // 
 function embodySpec(type_id) {
-    var type = psy_types[type_id || location.hash.split('-').slice(-1)[0]];
+    var type = psy_types[type_id || location.hash.split('/').slice(-1)[0]];
     document.querySelector('[data-name="spec-p"] h3').innerText = `${type[1]} (${type[0]})`;
     document.querySelectorAll('[data-name="spec-p"] strong').forEach((node, i) => {
         node.innerText = functions[type[0][i]];
@@ -596,6 +570,8 @@ function embodyProfile() {
         appCachedProfileValue();
     }
     const profile = appGetProfileByHash();
+    const header = document.querySelector('[data-name="profile"] h2');
+    correctVerifyHeader(header, profile[4]);
     const section = document.querySelector('[data-name="profile"]');
     section.querySelectorAll('.hint>div').forEach(h => {
         h.innerHTML = '';
@@ -622,17 +598,17 @@ function embodyProfile() {
         button.className = 'deny';
         if (profile[9] < 0) {
             section.querySelector('[data-part="additional"]').hidden = true;
-            h2.innerText = 'Персонаж';
-            h2.className = 'care';
+            //~ h2.innerText = 'Персонаж';
+            //~ h2.className = 'care';
             button.disabled = true;
         } else {
             section.querySelector('[data-part="additional"]').hidden = false;
             if (profile[4]) {
-                h2.innerText = 'Верифицированный профиль';
-                h2.className = 'grow';
+                //~ h2.innerText = 'Верифицированный профиль';
+                //~ h2.className = 'grow';
             } else {
-                h2.innerText = 'Неверифицированный профиль';
-                h2.className = 'deny';
+                //~ h2.innerText = 'Неверифицированный профиль';
+                //~ h2.className = 'deny';
             }
             button.disabled = false;
         }
@@ -650,19 +626,16 @@ function embodyProfile() {
         input_year,
         ] = inputs;
     input_name.value = fromCacheOrProfile(0);
-    input_name.dispatchEvent(new Event('change'));
-    //~ changedProfile(0, input_name.name, input_name.value);
+    changedProfile(0, input_name.name, input_name.value);
     const lat = fromCacheOrProfile(7);
     const lon = fromCacheOrProfile(8);
     input_link.value = fromCacheOrProfile(5) || '';
     input_location.value = lat && lon && `${lat}, ${lon}` || '';
     input_year.value = fromCacheOrProfile(6) || '';
     soc_selector.value = `${fromCacheOrProfile(1)}` || -1;
-    soc_selector.dispatchEvent(new Event('change'));
-    //~ changedProfile(0, soc_selector.name, soc_selector.value);
+    changedProfile(0, soc_selector.name, soc_selector.value);
     psy_selector.value = `${fromCacheOrProfile(2)}` || -1;
-    psy_selector.dispatchEvent(new Event('change'));
-    //~ changedProfile(0, psy_selector.name, psy_selector.value);
+    changedProfile(0, psy_selector.name, psy_selector.value);
     appCachedProfileValue(3, fromCacheOrProfile(3) || window.prop_sex);
     sex_selector.value = appCachedProfileValue(3);
     fixLayout();
@@ -735,11 +708,9 @@ function prepareControls() {
 
 
 // 
-function changedProfile() {
-    //~ if (event && event.target.disabled) return;
-    name = event.target.name;
-    value = event.target.value;
-    //~ console.log(name, value);
+function changedProfile(event, name, value) {
+    name = event && event.target.name || name;
+    value = event && event.target.value || value;
     const profile = appGetProfileByHash();
     const section = document.querySelector('[data-name="profile"]');
     const button = section.querySelector('button');
@@ -783,9 +754,9 @@ function changedProfile() {
         } else if (name == 'location') {
             let input_location = section.querySelector('input[name="location"]');
             let [lat, lon] = input_location.value.matchAll(/-?\d+\.\d+/g).toArray();
-            lat = lat && lat[0];
-            lon = lon && lon[0];
-            if (lat && lon) {
+            lat = lat && parseFloat(lat[0]).toFixed(5);
+            lon = lon && parseFloat(lon[0]).toFixed(5);
+            if (lat != undefined && lon != undefined) {
                 appCachedProfileValue(profile_map.indexOf('lat'), lat);
                 appCachedProfileValue(profile_map.indexOf('lon'), lon);
                 input_location.value = `${lat}, ${lon}`;
@@ -972,18 +943,18 @@ function embodyTestS() {
 
 function checkTestS() {
     var checked = 0;
-    document.querySelectorAll('.-test-s input').forEach(node => {
+    document.querySelectorAll('[data-name="test-s"] input').forEach(node => {
         if (node.checked) checked += 1;
     });
     if (checked == 4) {
-        document.querySelector('.-test-s button:first-of-type').disabled = false;
+        document.querySelector('[data-name="test-s"] button:first-of-type').disabled = false;
     }
 }
 
 
 // 
 function acceptTestS() {
-    const form = document.querySelector('.-test-s form');
+    const form = document.querySelector('[data-name="test-s"] form');
     const type_code = `${form.EI.value}${form.NS.value}${form.TF.value}${form.JP.value}`;
     appCachedProfileValue(9, appGetProfileByHash()[9]);
     soc_types.forEach((v, i) => {
@@ -994,16 +965,16 @@ function acceptTestS() {
 
 
 function embodyTestP() {
-    const units = document.getElementsByClassName('-test-p');
-    units[2].querySelector('button').disabled = true;
-    units[1].querySelectorAll('input[type="radio"]').forEach(node => {
+    const section = document.querySelector('[data-name="test-p"]');
+    section.querySelector('button').disabled = true;
+    section.querySelectorAll('input[type="radio"]').forEach(node => {
         node.checked = false;
         node.removeAttribute('data-checked');
         if (!node.onchange) {
             node.onchange = checkTestP;
         }
     });
-    units[1].querySelectorAll('.step2').forEach(node => {
+    section.querySelectorAll('.step2').forEach(node => {
         node.hidden = true;
     });
     fixLayout();
@@ -1012,8 +983,8 @@ function embodyTestP() {
 
 
 function checkTestP(step) {
-    const units = document.getElementsByClassName('-test-p');
-    const [form1, form2, form3] = units[1].querySelectorAll('form p');
+    const section = document.querySelector('[data-name="test-p"]');
+    const [form1, form2, form3] = section.querySelectorAll('form p');
     const checked1 = form1.querySelectorAll('input[data-checked]');
     const checked2 = form2.querySelectorAll('input[data-checked]');
     const checked3 = form3.querySelectorAll('input[data-checked]');
@@ -1023,7 +994,7 @@ function checkTestP(step) {
     event.target.checked = true;
     event.target.dataset.checked = true;
     if (checked1.length == 1) {
-        units[1].querySelectorAll('.step2').forEach(node => {
+        section.querySelectorAll('.step2').forEach(node => {
             node.hidden = false;
             form2.innerText = '';
             form3.innerText = '';
@@ -1064,15 +1035,15 @@ function checkTestP(step) {
             } 
         });
     }
-    if (units[1].querySelectorAll('input[data-checked]').length == 4) {
-        units[2].querySelector('button').disabled = false;
+    if (section.querySelectorAll('input[data-checked]').length == 4) {
+        section.querySelector('button').disabled = false;
     }
 }
 
 
 // 
 function acceptTestP() {
-    const [f13, f24] = document.querySelectorAll('.-test-p form:not(:first-of-type)');
+    const [f13, f24] = document.querySelectorAll('[data-name="test-p"] form:not(:first-of-type)');
     const f1 = f13.querySelector('[data-checked]');
     const f3 = f13.querySelector('input:not([data-checked])');
     const f2 = f24.querySelector('[data-checked]');
@@ -1091,18 +1062,18 @@ function acceptTestP() {
 function visit(name) {
     var map = {
         'default': 'https://bastyon.com/sdrawerohs',
-        'webapp': 'https://pogodavdometer.web.app',
-        'featured': 'https://bastyon.com/index?video=1&v=888d76fcbe1e28cc25b412d46344fd49e6c69c013743f14f1a52ef066d60bbf2',
+        'hobbystu': 'https://vk.com/hobbystu',
+        'featured': 'https://vk.com/shorewards?w=wall-117170606_352',
         'lexigo': 'https://bastyon.com/application?id=lexigo.app',
-        'antimatrix': 'https://bastyon.com/application?id=antimatrix.app',
+        'pogodavdometer': 'https://bastyon.com/application?id=pogodavdometer.app',
         'lifetuner': 'https://bastyon.com/application?id=lifetuner.app',
     }
     var vk_map = {
         'default': 'https://vk.com/shorewards',
-        'webapp': 'https://pogodavdometer.web.app',
-        'featured': 'https://vk.com/shorewards?w=wall-117170606_344',
+        'hobbystu': 'https://vk.com/hobbystu',
+        'featured': 'https://vk.com/shorewards?w=wall-117170606_352',
         'lexigo': 'https://vk.com/lexigo2',
-        'antimatrix': 'https://vk.com/antimatriks',
+        'pogodavdometer': 'https://vk.com/pogodavdometer',
         'lifetuner': 'https://vk.com/progressinator',
     }
     openExternalLink((window.vk_user_id && vk_map || map)[name || 'default']);
@@ -1190,6 +1161,7 @@ function find() {
     const [stype, ptype, sex, x, y, year, lat, lon, id] = window.prop_profile.slice(1);
     const from_year = new Date().getFullYear() - window.prop_age[1];
     const to_year = new Date().getFullYear() - window.prop_age[0];
+    console.log(44444444, from_year, to_year, window.prop_age[1]);
     const is_verified = window.prop_mode;
     const delta = window.prop_distance / 100;
     fetch(`${database_url}/find/${stype}/${ptype}/${sex}/${window.prop_activity}/${from_year}/${to_year}/${lat - delta}/${lat + delta}/${lon - delta}/${lon + delta}/${is_verified}/${window.prop_deleted}/${id}`)
@@ -1267,3 +1239,22 @@ function displayFilter(alt, mode) {
 }
 
 
+function reset() {
+localStorage.clear();
+_reset();
+appSaveProps();
+appKeepProps();
+embodyMain();
+
+}
+
+
+
+
+
+
+
+
+
+
+//~ https://www.google.com/maps/place/54.22415,83.37112/@54.22415,83.37112,100000m

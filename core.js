@@ -43,7 +43,7 @@ function fixLayout() {
         vkBridge.send("VKWebAppScroll", {top: 0});
         vkBridge.send('VKWebAppResizeWindow', {
             width: 640,
-            height: Math.max(document.body.offsetHeight + 96, 640),
+            height: Math.max(document.body.offsetHeight + 144, 640),
         });
     }
 }
@@ -255,7 +255,6 @@ function _loadPropsDb() {
 
 
 function appKeepProps(list) {
-    console.log(222, list)
     list = typeof(list) == 'object' && list.length && list
         || typeof(list) == 'string' && [list]
         || Object.keys(window.prop_cached  || {});

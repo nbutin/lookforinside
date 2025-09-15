@@ -27,7 +27,7 @@ const PRECACHE_URLS = [
   'app.js',
   'browser.min.js',
   'sdk.js',
-  'logo.png',
+  'cover.jpg',
   'bg.jpg',
   'icons/app48.png',
   'icons/app192.png',

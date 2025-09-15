@@ -13,8 +13,7 @@
     <meta name="description" content="Приложение для умного поиска 'половинки' и проникновения в тайну гармоничных отношений">
     <title>Люди как пазлы</title>
     <link rel="stylesheet" href="core.css?v=11">
-    <link rel="stylesheet" href="apps.css?v=11">
-    <link rel="stylesheet" href="this.css?v=11">
+    <link rel="stylesheet" href="app.css?v=11">
     <link rel="manifest" href="app.webmanifest">
     <link rel="apple-touch-icon" href="icons/app192.png">
     <link rel="icon" href="icons/app48.png">
@@ -56,8 +55,8 @@
 <h2 class="care">Верификация</h2>
 <div>
     <hr/>
-    <p><strong>Значки неверифицированных профилей на&nbsp;карте отображаются размытыми. Проверка профилей позволяет повысить адекватность и эффективность поиска.</strong> Отметка о пройденной верификации означает, что авторы проекта пообщались с&nbsp;пользователем и убедились в том, что&nbsp;основные параметры его профиля <em class="care">(социотип, психотип, пол и возраст)</em> правдоподобны, <em class="deny">однако полной гарантии достоверности такая проверка не даёт</em>. Если&nbsp;после проверки пользователь изменит значение хотя бы одного из названных выше&nbsp;параметров, отметка о верификации аннулируется. Верификация — платная услуга стоимостью 9 pocketcoin (или 750 ₽), заявки&nbsp;<a onclick="visit()">отправляйте сюда</a>.</p>
-    <p class="grow">Каждую неделю делаем пять бесплатных верификаций по конкурсу. Чтобы принять участие, нужно опубликовать на своей странице <strong>красивый пост</strong> со ссылкой на приложение и&nbsp;хэштегом #люди_как_пазлы. </p>
+    <p><strong>Значки неверифицированных профилей на&nbsp;карте <em>выделены затемнением</em>. Проверка профилей позволяет повысить адекватность и эффективность поиска.</strong> Отметка о пройденной верификации означает, что авторы проекта пообщались с&nbsp;пользователем и убедились в том, что&nbsp;основные параметры его профиля <em class="care">(социотип, психотип, пол и возраст)</em> правдоподобны, <em class="deny">однако полной гарантии достоверности такая проверка не даёт</em>. Если&nbsp;после проверки пользователь изменит значение хотя бы одного из названных выше&nbsp;параметров, отметка о верификации аннулируется. Верификация — платная услуга стоимостью 9 pocketcoin (или 750 ₽), заявки&nbsp;<a onclick="visit()">отправляйте сюда</a>.</p>
+    <p class="grow">Каждую неделю делаем пять бесплатных верификаций по конкурсу. Чтобы принять участие, нужно опубликовать на своей странице <strong>красивый пост</strong> со ссылкой на приложение и&nbsp;хэштегом <strong>#люди_как_пазлы</strong>. </p>
 </div>
 <!--div class="deny">
     <hr/>
@@ -76,10 +75,10 @@
         Представляем вам карту психосоциотипической совместимости, на&nbsp;примере персонажей художественных произведений. <strong>Исследуйте эту карту, чтобы&nbsp;понять, принцип её работы.</strong> <br/>Реальных людей вы сможете увидеть здесь сразу&nbsp;после&nbsp;того, как заполните свой&nbsp;личный&nbsp;профиль.
     </div>
     <div hidden class="alt">
-        <a onclick="displayFilter(3, -1)">Выборка:</a> я и герои произведений.<br/> <a onclick="displayFilter(3, 1)">Показать реальных людей</a>
+        <a onclick="displayFilter(3, -1)">Выборка:</a> я и герои произведений.<br/> <a onclick="displayFilter(3, 0)">Показать реальных людей</a>
     </div>
     <div hidden class="alt">
-        <a onclick="displayFilter(3)">Выборка:</a> <i>только проверенные</i>,<br/> возраст — <i>18-24</i>, ≤ <i>1000</i> км, ≤ <i>5</i> дней
+        <a onclick="displayFilter(3)">Выборка:</a> <i>только проверенные</i>,<br/> возраст — <i>18-81</i>, ≤ <i>5000</i> км, ≤ <i>14</i> дней
     </div>
     <div hidden class="alt">
         <div class="grid">
@@ -110,7 +109,7 @@
 </div>
 <div>
     <hr/>
-    <p><strong>Авторы:</strong> Николай <a onclick="visit('sdrawerohs')" class="know">@sdrawerohs</a> и&nbsp;Алиса <a onclick="visit('alisa')" class="know">@hobbystu</a>. Наши проекты: <a onclick="visit('lexigo')" class="grow">Упрямый Инглиш</a>, <a onclick="visit('lifetuner')" class="pick">Прогрессинатор</a>, <a onclick="visit('pogodavdometer')" class="care">Погодавдо-метр</a> и другое. Ваша поддержка поможет приблизить рождение нового шедевра.</p>
+    <p><strong>Авторы:</strong> Николай <a onclick="visit()" class="know">@sdrawerohs</a> и&nbsp;Алиса <a onclick="visit('hobbystu')" class="know">@hobbystu</a>. Наши проекты: <a onclick="visit('lexigo')" class="grow">Упрямый Инглиш</a>, <a onclick="visit('lifetuner')" class="pick">Прогрессинатор</a>, <a onclick="visit('pogodavdometer')" class="care">Погодавдо-метр</a> и другое. Ваша поддержка поможет приблизить рождение нового шедевра.</p>
 </div>
 <fieldset>
     <hr/>
@@ -150,9 +149,9 @@
     <div class="grid">
         <input class="colspan-2 link" type="text" name="link" maxlength="99" placeholder="Веб-адрес" onclick="this.value && openExternalLink(this.value)" onfocus="this.blur()" />
         <input type="text" name="location" placeholder="Местоположение" />
-        <input type="text" name="year" maxlength="4" placeholder="Год рожд." style="letter-spacing: -0.5px;" />
+        <input type="text" name="year" maxlength="4" placeholder="Год рождения" />
     </div>
-    <p><strong>Все поля формы обязательны для заполнения.</strong> В графе "Местоположение" укажите географические координаты в&nbsp;формате <em class="know">55.053364,&nbsp;82.876141</em> (можно узнать&nbsp;в&nbsp;Яндекс- или Гугл-картах).</p>
+    <p><strong>Все поля формы обязательны для заполнения.</strong> В графе "Местоположение" укажите географические координаты в&nbsp;формате <em class="know">55.05336,&nbsp;82.87614</em> (можно узнать&nbsp;в&nbsp;Яндекс- или Гугл-картах).</p>
     <p class="care">В целях безопасности рекомендуем указать координаты случайной точки ближайшего к вам крупного населенного пункта.</p>
     <p class="deny">Вступая в контакт с незнакомыми людьми в&nbsp;Интернете, будьте осторожны.</p>
 </div>
@@ -234,10 +233,10 @@
         <p><strong>Мягкий, старательный, вдумчивый.</strong> Этико-интуитивный интроверт (ЭИИ) из&nbsp;квадры стабилизаторов.  <strong>Мотивация:</strong> искренность, смыслы, душевный покой. <strong>Недостатки:</strong> может быть слишком пассивным, застревает в рефлексии.</p>
     </div>
 </div>
-<div>
+<fieldset>
     <hr/>
     <button onclick="history.back()">Вернуться</button>
-</div>
+</fieldset>
 </section>
 
 
@@ -259,10 +258,10 @@
         </p>
     </div>
 </div>
-<div>
+<fieldset>
     <hr/>
     <button onclick="history.back()">Вернуться</button>
-</div>
+</fieldset>
 </section>
 
 
@@ -270,9 +269,8 @@
 <h2 class="deny">Неверифицированный профиль</h2>
 <div id="matching">
     <hr/>
-    <h2>Совместимость — <span id="sum-percent"></span>%</h2>
-    <table class="grid">
-    </table>
+    <div class="grid">
+    </div>
 </div>
 <fieldset>
     <hr/>
@@ -281,7 +279,6 @@
 </section>
 
 
-<!-- test-s -->
 <section data-name="test-s">
 <h2>Определение социотипа</h2>
 <div>
@@ -318,13 +315,13 @@
         </div>
     </form>
 </div>
-<div>
+<fieldset>
     <hr/>
     <div class="grid">
         <button onclick="acceptTestS()">Сохранить</button>
         <button onclick="history.back()">Отменить</button>
     </div>
-</div>
+</fieldset>
 </section>
 
 
@@ -334,7 +331,7 @@
     <hr/>
     <p><strong>Выберите две сферы, в которых вы&nbsp;обычно более гибки/уступчивы</strong> (и,&nbsp;значит, невыбранными должны остаться те, где вы обычно более категоричны/принципиальны):</p>
     <form>
-        <p class="blue-notable">
+        <p class="know">
             <label><input type="radio" value="Ф"> сфера физического комфорта</label>
             <label><input type="radio" value="В"> сфера принятия решений</label>
             <label><input type="radio" value="Э"> сфера переживания эмоций</label>
@@ -343,21 +340,19 @@
     </form>
     <p class="step2">Из каждой пары выберите теперь по&nbsp;одной такой сфере, где вы обычно проявляете себя более уверенно:</p>
     <form class="step2">
-        <p class="purple-notable"></p>
+        <p class="pick"></p>
     </form>
     <form class="step2">
-        <p class="notable-green"></p>
+        <p class="care"></p>
     </form>
 </div>
-<div class="footer part-of -test-p">
+<fieldset>
     <hr/>
-    <table class="grid">
-        <tr>
-            <td><button onclick="acceptTestP()">Сохранить</button></td>
-            <td><button onclick="history.back()">Отменить</button></td>
-        </tr>
-    </table>
-</div>
+    <div class="grid">
+        <button onclick="acceptTestP()">Сохранить</button>
+        <button onclick="history.back()">Отменить</button>
+    </div>
+</fieldset>
 </section>
 
 
