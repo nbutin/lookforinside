@@ -85,7 +85,7 @@ font-size: var(--large);
 h2,
 h3 {
 font-size: var(--larger);
-margin: 1rem 0;
+margin: 0.5rem 0;
 text-align: center;
 }
 
