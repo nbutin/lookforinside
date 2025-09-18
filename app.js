@@ -11,7 +11,6 @@ function _reset() {
     window.prop_deleted = [0];
     window.prop_cached = {
         prop_sex: 0, // 1, 2
-        //~ prop_mode: 0, // -1, 0, 1
         prop_distance: 0,
         prop_activity: 0,
         prop_age: [],
@@ -156,7 +155,7 @@ function calcAllRatings() {
     var map = [];
     const selected = appGetSelected();
     window.prop_profiles.forEach(p => {
-        if (p && selected != p[9] && p[3] != window.prop_sex) {
+        if (p && selected != p[9] && p[3] != window.prop_sex && !window.prop_deleted.includes(p[9])) {
             map.push(calcRating(p));
         }
     });
@@ -333,28 +332,28 @@ function embodyMain() {
 
 
 // 
-function appStoredImage(profile_id) {
-    if (!window.non_saving_mode) {
-        return coreStoredImage(profile_id)
-            || (parseInt(profile_id) > 0 && parseInt(profile_id) < 51
-            && `images/${profile_id}.jpg`) || '';
-    } else {
-        return parseInt(profile_id) > 0 && `https://shorewards.ru/psion/static/images/${profile_id}.jpg` || '';
-    }
-}
+//~ function appStoredImage(profile_id) {
+    //~ if (!window.non_saving_mode) {
+        //~ return coreStoredImage(profile_id)
+            //~ || (parseInt(profile_id) > 0 && parseInt(profile_id) < 51
+            //~ && `images/${profile_id}.jpg`) || '';
+    //~ } else {
+        //~ return parseInt(profile_id) > 0 && `https://shorewards.ru/psion/static/images/${profile_id}.jpg` || '';
+    //~ }
+//~ }
 
 
 
 // 
-function appBadge(profile_id, modifiers) {
-    const image = window.prop_profiles[profile_id][6] || appStoredImage(profile_id);
-    var label = '';
-    if (window.prop_profiles[profile_id]) {
-        label = coreAcronym(window.prop_profiles[profile_id][0]);
-    }
-    const featured = modifiers && true || false;
-    return coreBadge(image, label, null, featured, modifiers);
-}
+//~ function appBadge(profile_id, modifiers) {
+    //~ const image = window.prop_profiles[profile_id][6] || appStoredImage(profile_id);
+    //~ var label = '';
+    //~ if (window.prop_profiles[profile_id]) {
+        //~ label = coreAcronym(window.prop_profiles[profile_id][0]);
+    //~ }
+    //~ const featured = modifiers && true || false;
+    //~ return coreBadge(image, label, null, featured, modifiers);
+//~ }
 
 
 // 
@@ -424,10 +423,12 @@ function embodyMatching() {
     const id2 = matched[9];
     const header = document.querySelector('[data-name="matching"] h2');
     correctVerifyHeader(header, matched[4]);
-    var disabled = '';
-    if (matched[4] === undefined) disabled = 'disabled="1"';
     link1e = `profile/${id1}`;
     link2e = `profile/${id2}`;
+    var profile_button = `<button class="deny" onclick="saveProfile()">Удалить</button>`;
+    if (matched[4] === undefined) {
+        profile_button = `<button onclick="location.hash = '${link2e}'">Профиль</button>`;
+    }
     var link1s = `spec-s/${selected[1]}`;
     var link2s = `spec-s/${matched[1]}`;
     var link1p = `spec-p/${selected[2]}`;
@@ -448,7 +449,6 @@ function embodyMatching() {
     var psy_rating = percentToClass(rating[5][0], rating[5][1]);
     var soc_details = formatRatingDetails(rating[4][2]);
     var psy_details = formatRatingDetails(rating[5][2]);
-    //~ document.getElementById('sum-percent').innerText = sum_percent;
     var html = `
         <h3 class="colspan-2">Совместимость — ${sum_percent}%</h3>
         ${badge1.replace('"badge"', '"badge ' + sum_rating + '"')}
@@ -466,7 +466,7 @@ function embodyMatching() {
                     ${psy_details}
                 </ul>
         <button onclick="location.hash = '${link1e}'">Исправить</button>
-        <button class="deny" onclick="location.hash = '${link2e}'" ${disabled}>Удалить</button>
+        ${profile_button}
     `;
     document.querySelector('#matching .grid').innerHTML = html;
     fixLayout();
@@ -514,8 +514,8 @@ function appGetProfileByHash(profile_id) {
 function fromCacheOrProfile(index) {
     const profile = appGetProfileByHash();
     const cached = appCachedProfileValue(index);
-    if (index == 10 && profile[9] >= 0) {
-        return `images/${profile[9]}.jpg`;
+    if (index == 10 && profile[9] < 0) {
+        return `images/${Math.abs(profile[9])}.jpg`;
     } else {
         if (cached != undefined) {
             return cached;
@@ -553,9 +553,9 @@ function loadProfileInfo(profile) {
                 let name = `${data.first_name} ${data.last_name}`;
                 let url = `https://vk.ru/id${data.id}`;
                 appCachedProfileValue(10, data.photo_200);
-                appCachedProfileValue(0, name);
+                appCachedProfileValue(0, appCachedProfileValue(0) || name);
                 appCachedProfileValue(5, url);
-                section.querySelector('[name="name"]').value = name;
+                section.querySelector('[name="name"]').value = appCachedProfileValue(0) || name;
                 section.querySelector('.badge i').style.backgroundImage = `url("${data.photo_200}")`;
                 section.querySelector('[name="link"]').value = url;
             }
@@ -570,47 +570,30 @@ function embodyProfile() {
         appCachedProfileValue();
     }
     const profile = appGetProfileByHash();
-    const header = document.querySelector('[data-name="profile"] h2');
-    correctVerifyHeader(header, profile[4]);
     const section = document.querySelector('[data-name="profile"]');
+    const header = section.querySelector('h2');
+    correctVerifyHeader(header, profile[4]);
     section.querySelectorAll('.hint>div').forEach(h => {
         h.innerHTML = '';
         h.parentNode.hidden = true;
     });
     const inputs = section.querySelectorAll('input, select');
-    const button = section.querySelector('button');
     const image = document.getElementById('badge-place');
-    const h2 = section.querySelector('h2');
     image.innerHTML = htmlBadge();
     if (profile[9] == window.prop_profile[9]) {
         loadProfileInfo(profile);
         section.querySelector('[data-part="additional"]').hidden = false;
-        h2.innerText = 'Мой профиль';
-        h2.className = '';
-        button.innerText = 'Сохранить'
-        button.className = 'grow';
-        button.disabled = true;
+        header.innerText = 'Мой профиль';
+        header.className = '';
         inputs.forEach(i => {
             i.disabled = false;
         });
     } else {
-        button.innerText = 'Удалить'
-        button.className = 'deny';
         if (profile[9] < 0) {
             section.querySelector('[data-part="additional"]').hidden = true;
-            //~ h2.innerText = 'Персонаж';
-            //~ h2.className = 'care';
-            button.disabled = true;
         } else {
             section.querySelector('[data-part="additional"]').hidden = false;
-            if (profile[4]) {
-                //~ h2.innerText = 'Верифицированный профиль';
-                //~ h2.className = 'grow';
-            } else {
-                //~ h2.innerText = 'Неверифицированный профиль';
-                //~ h2.className = 'deny';
-            }
-            button.disabled = false;
+            section.querySelector('[data-part="additional"] p').hidden = true;
         }
         inputs.forEach(i => {
             i.disabled = true;
@@ -626,16 +609,21 @@ function embodyProfile() {
         input_year,
         ] = inputs;
     input_name.value = fromCacheOrProfile(0);
-    changedProfile(0, input_name.name, input_name.value);
+    changedProfile(0, input_name);
+    image.innerHTML = htmlBadge(fromCacheOrProfile(10), input_name.value);
     const lat = fromCacheOrProfile(7);
     const lon = fromCacheOrProfile(8);
     input_link.value = fromCacheOrProfile(5) || '';
-    input_location.value = lat && lon && `${lat}, ${lon}` || '';
+    appCachedProfileValue(profile_map.indexOf('link'), fromCacheOrProfile(5) || '');
+    input_location.value = lat && lon && `${lat.toFixed(3)}, ${lon.toFixed(3)}` || '';
+    appCachedProfileValue(profile_map.indexOf('lat'), lat);
+    appCachedProfileValue(profile_map.indexOf('lon'), lon);
     input_year.value = fromCacheOrProfile(6) || '';
+    appCachedProfileValue(profile_map.indexOf('year'), fromCacheOrProfile(6) || '');
     soc_selector.value = `${fromCacheOrProfile(1)}` || -1;
-    changedProfile(0, soc_selector.name, soc_selector.value);
+    changedProfile(0, soc_selector);
     psy_selector.value = `${fromCacheOrProfile(2)}` || -1;
-    changedProfile(0, psy_selector.name, psy_selector.value);
+    setTimeout(() => {changedProfile(0, psy_selector)}, 9); ////////////////////////// why???
     appCachedProfileValue(3, fromCacheOrProfile(3) || window.prop_sex);
     sex_selector.value = appCachedProfileValue(3);
     fixLayout();
@@ -685,9 +673,9 @@ function isComplete() {
     var result = true;
     for (let i = 0; i < 9; i++) {
         if (![4, 5].includes(i)) {
-            if ([1, 2].includes(i) && profile[i] < 0 && (!window._cached_ || !window._cached_[i] < 0)) {
+            if ([1, 2].includes(i) && (!window._cached_ || parseInt(window._cached_[i]) < 0)) {
                 result = false;
-            } else if (![1, 2].includes(i) && !profile[i] && (!window._cached_ || !window._cached_[i])) {
+            } else if (![1, 2].includes(i) && (!window._cached_ || !window._cached_[i])) {
                 result = false;
             }
         }
@@ -708,9 +696,9 @@ function prepareControls() {
 
 
 // 
-function changedProfile(event, name, value) {
-    name = event && event.target.name || name;
-    value = event && event.target.value || value;
+function changedProfile(event, target) {
+    name = event && event.target.name || target.name;
+    value = event && event.target.value || !event && target.value || '';
     const profile = appGetProfileByHash();
     const section = document.querySelector('[data-name="profile"]');
     const button = section.querySelector('button');
@@ -721,20 +709,28 @@ function changedProfile(event, name, value) {
         appCachedProfileValue(profile_map.indexOf(name), value);
     }
     setTimeout(() => {
-        if (isChanged() && isComplete() && !appCachedProfileValue(0)) {
-            //~ button.innerText = 'Удалить';
-            //~ button.className = 'deny';
+        if (profile[9] < 0) {
+            button.innerText = 'Удалить';
+            button.className = 'deny';
+            button.disabled = true;
+        } else if (profile[0] && !isChanged()) {
+            button.innerText = 'Удалить';
+            button.className = 'deny';
+            button.disabled = false;
+        } else if (profile[0] && !appCachedProfileValue(0)) {
+            button.innerText = 'Удалить';
+            button.className = 'deny';
+            button.disabled = false;
+        } else if (isChanged() && isComplete()) {
+            button.innerText = 'Сохранить';
+            button.className = 'grow';
             button.disabled = false;
         } else {
-            //~ button.innerText = 'Сохранить';
-            //~ button.className = 'grow';
-            if (isChanged() && isComplete() && appCachedProfileValue(1) >= 0 && appCachedProfileValue(2) >= 0) {
-                button.disabled = false;
-            } else {
-                button.disabled = true;
-            }
+            button.innerText = 'Сохранить';
+            button.className = 'grow';
+            button.disabled = true;
         }
-        const hints = section.querySelectorAll('.hint div');
+        const hints = section.querySelectorAll('.hint>div');
         if (name == 'name') {
             let input_name = section.querySelector('input[name="name"]');
             input_name.value = value.replaceAll(/[<>]|^\s+$/g, '');
@@ -754,8 +750,8 @@ function changedProfile(event, name, value) {
         } else if (name == 'location') {
             let input_location = section.querySelector('input[name="location"]');
             let [lat, lon] = input_location.value.matchAll(/-?\d+\.\d+/g).toArray();
-            lat = lat && parseFloat(lat[0]).toFixed(5);
-            lon = lon && parseFloat(lon[0]).toFixed(5);
+            lat = lat && parseFloat(lat[0]).toFixed(3);
+            lon = lon && parseFloat(lon[0]).toFixed(3);
             if (lat != undefined && lon != undefined) {
                 appCachedProfileValue(profile_map.indexOf('lat'), lat);
                 appCachedProfileValue(profile_map.indexOf('lon'), lon);
@@ -789,138 +785,73 @@ function changedProfile(event, name, value) {
 }
 
 
-// 
-//~ function getEditedProfileValues() {
-    //~ const section = document.querySelector('[data-name="profile"]');
-    //~ const [
-        //~ input_name,
-        //~ soc_selector,
-        //~ psy_selector,
-        //~ sex_selector,
-        //~ input_link,
-        //~ input_location,
-        //~ input_year,
-        //~ ] = section.querySelectorAll('input, select');
-    //~ const values = [
-        //~ input_name.value.replaceAll(/^\s+$/g, ''),
-        //~ parseInt(soc_selector.value),
-        //~ parseInt(psy_selector.value),
-        //~ parseInt(sex_selector.value),
-        //~ null, //is_verified
-        //~ input_link.value,
-        //~ input_year.value,
-        //~ input_location.value.split(/,\s*/)[0],
-        //~ input_location.value.split(/,\s*/)[1],
-        //~ appGetProfileByHash()[9],
-        //~ ];
-    //~ return values;
+//~ function toStorage(key, val) {
+    //~ localStorage[key] = JSON.stringify(val);
 //~ }
 
 
 // 
-//~ function saveProfile() {
-    //~ const values = getEditedProfileValues();
-    //~ var ok = true;
-    //~ window.prop_profiles.some((val, i) => {
-        //~ if (val && val[0] == values[0] && i != values[9]) {
-            //~ ok = confirm('Профиль с таким именем уже существует. Продолжить сохранение?');
-            //~ return true;
+//~ function applyImage() {
+    //~ const file = document.getElementById('uploaded').files[0];
+    //~ if (!['image/jpeg', 'image/gif', 'image/svg+xml', 'image/png'].includes(file.type)) {
+        //~ alert('Неверный тип файла.\nПодойдут: png, jpeg, svg и gif');
+        //~ return;
+    //~ }
+    //~ const url = URL.createObjectURL(file);
+    //~ compressImage(url, data => {
+        //~ appCachedProfileValue(9, appGetProfileByHash()[9]);
+        //~ appCachedProfileValue(8, data);
+        //~ const image = document.querySelector('.-edit .badge a[style]');
+        //~ image.style.backgroundImage = `url('${data}')`;
+        //~ const input_name = document.querySelector('.-edit input[name="name"]');
+        //~ if (input_name.value) {
+            //~ const button = document.querySelector('.-edit button');
+            //~ button.disabled = false;
         //~ }
     //~ });
-    //~ if (!ok) return;
-    //~ if ([NaN].includes(values[9])) {
-        //~ coreStoredImage(window.prop_profiles.length, appCachedProfileValue(8));
-        //~ window.prop_profiles.push(values.slice(0, 3));
-        //~ history.back();
-    //~ } else if (!values[0]) {
-        //~ window.prop_profiles[values[9]] = null;
-        //~ while (window.prop_profiles.length > 10 && !window.prop_profiles.slice(-1)[0]) {
-            //~ window.prop_profiles.pop();
-        //~ }
-        //~ coreStoredImage(values[9], null);
-        //~ location.hash = '-main';
-    //~ } else {
-        //~ window.prop_profiles[values[9]] = values.slice(0, 3);
-        //~ coreStoredImage(values[9], appCachedProfileValue(8));
-        //~ history.back();
+//~ }
+
+
+//~ // 
+//~ function compressImage(url, callback) {
+    //~ const canvas = document.createElement('canvas');
+    //~ canvas.width = 240;
+    //~ canvas.height = 240;
+    //~ const ctx = canvas.getContext('2d');
+    //~ const img = new Image;
+    //~ img.onload = function() {
+        //~ ctx.drawImage(img, 0, 0, 240, 240);
+        //~ [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1].some(x => {
+            //~ let result = canvas.toDataURL('image/jpeg', x);
+            //~ if (result.length <= 50 * 1024) {
+                //~ callback(result);
+                //~ return true;
+            //~ }
+        //~ });
     //~ }
-    //~ appSaveProps('prop_profiles');
+    //~ img.src = url;
 //~ }
 
 
 
-function toStorage(key, val) {
-    localStorage[key] = JSON.stringify(val);
-}
-
-function selectFile() {
-    document.getElementById('uploaded').click();
-}
-
-
-
-// 
-function applyImage() {
-    const file = document.getElementById('uploaded').files[0];
-    if (!['image/jpeg', 'image/gif', 'image/svg+xml', 'image/png'].includes(file.type)) {
-        alert('Неверный тип файла.\nПодойдут: png, jpeg, svg и gif');
-        return;
-    }
-    const url = URL.createObjectURL(file);
-    compressImage(url, data => {
-        appCachedProfileValue(9, appGetProfileByHash()[9]);
-        appCachedProfileValue(8, data);
-        const image = document.querySelector('.-edit .badge a[style]');
-        image.style.backgroundImage = `url('${data}')`;
-        const input_name = document.querySelector('.-edit input[name="name"]');
-        if (input_name.value) {
-            const button = document.querySelector('.-edit button');
-            button.disabled = false;
-        }
-    });
-}
-
-
-// 
-function compressImage(url, callback) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 240;
-    canvas.height = 240;
-    const ctx = canvas.getContext('2d');
-    const img = new Image;
-    img.onload = function() {
-        ctx.drawImage(img, 0, 0, 240, 240);
-        [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1].some(x => {
-            let result = canvas.toDataURL('image/jpeg', x);
-            if (result.length <= 50 * 1024) {
-                callback(result);
-                return true;
-            }
-        });
-    }
-    img.src = url;
-}
+//~ function coreStoredImage(id, data) {
+    //~ const name = `image-${id}`;
+    //~ if (data === undefined) {
+        //~ return window[name];
+    //~ } else if (data === null) {
+        //~ delete window[name];
+        //~ delete window.prop_stored[name];
+        //~ appSaveProps([name, 'prop_stored']);
+    //~ } else {
+        //~ window[name] = data;
+        //~ window.prop_stored[name] = '';
+        //~ appSaveProps([name, 'prop_stored']);
+    //~ }
+//~ }
 
 
 
-function coreStoredImage(id, data) {
-    const name = `image-${id}`;
-    if (data === undefined) {
-        return window[name];
-    } else if (data === null) {
-        delete window[name];
-        delete window.prop_stored[name];
-        appSaveProps([name, 'prop_stored']);
-    } else {
-        window[name] = data;
-        window.prop_stored[name] = '';
-        appSaveProps([name, 'prop_stored']);
-    }
-}
-
-
-
-function homewards() {
+function goHome() {
     if (location.hash == '#main' && window.prop_profile[9] === undefined) {
         location.hash = 'start';
     } else {
@@ -1080,24 +1011,24 @@ function visit(name) {
 }
 
 
-function setup() {
-    if (window.vk_user_id) {
-        vkBridge
-        .send("VKWebAppRecommend")
-        .finally(() => {
-            vkBridge
-            .send("VKWebAppAddToFavorites")
-            .finally(() => {
-                vkBridge
-                .send("VKWebAppAllowNotifications")
-                .finally(() => {
-                });
-            });
-        });
-    } else {
-        location.hash = '-settings';
-    }
-}
+//~ function setup() {
+    //~ if (window.vk_user_id) {
+        //~ vkBridge
+        //~ .send("VKWebAppRecommend")
+        //~ .finally(() => {
+            //~ vkBridge
+            //~ .send("VKWebAppAddToFavorites")
+            //~ .finally(() => {
+                //~ vkBridge
+                //~ .send("VKWebAppAllowNotifications")
+                //~ .finally(() => {
+                //~ });
+            //~ });
+        //~ });
+    //~ } else {
+        //~ location.hash = '-settings';
+    //~ }
+//~ }
 
 
 
@@ -1107,30 +1038,30 @@ function setup() {
 
 
 
-var _install_prompt;
+//~ var _install_prompt;
 
 
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    _install_prompt = e;
-});
+//~ window.addEventListener('beforeinstallprompt', (e) => {
+    //~ e.preventDefault();
+    //~ _install_prompt = e;
+//~ });
 
 
-function install(){
-    if (_install_prompt){
-        _install_prompt.prompt();
-        _install_prompt.userChoice.then(r => {
-            if (r.outcome === 'accepted') {
-                log('Installation accepted');
-                alert('Приложение установлено :)');
-            } else {
-                log('Installation refused');
-            }
-        });
-    } else {
-        alert('Что-то пошло не так :(');
-    }
-}
+//~ function install(){
+    //~ if (_install_prompt){
+        //~ _install_prompt.prompt();
+        //~ _install_prompt.userChoice.then(r => {
+            //~ if (r.outcome === 'accepted') {
+                //~ log('Installation accepted');
+                //~ alert('Приложение установлено :)');
+            //~ } else {
+                //~ log('Installation refused');
+            //~ }
+        //~ });
+    //~ } else {
+        //~ alert('Что-то пошло не так :(');
+    //~ }
+//~ }
 
 
 function start(sex) {
@@ -1140,31 +1071,13 @@ function start(sex) {
 }
 
 
-//~ function socioPercents() {
-    //~ for (let i=0; i<16; i++) {
-        //~ for (let j=0; j<16; j++) {
-            //~ let percent = calcSocRating(i, soc_types[j])[0];
-            //~ document.write(`insert into socio (type1, type2, percent) values (${i}, ${j}, ${percent}); <br/>`);
-        //~ }
-    //~ }
-//~ }
-//~ function psychPercents() {
-    //~ for (let i=0; i<24; i++) {
-        //~ for (let j=0; j<24; j++) {
-            //~ let percent = calcPsyRating(i, psy_types[j])[0];
-            //~ document.write(`insert into psych (type1, type2, percent) values (${i}, ${j}, ${percent}); <br/>`);
-        //~ }
-    //~ }
-//~ }
-
 function find() {
     const [stype, ptype, sex, x, y, year, lat, lon, id] = window.prop_profile.slice(1);
     const from_year = new Date().getFullYear() - window.prop_age[1];
     const to_year = new Date().getFullYear() - window.prop_age[0];
-    console.log(44444444, from_year, to_year, window.prop_age[1]);
     const is_verified = window.prop_mode;
     const delta = window.prop_distance / 100;
-    fetch(`${database_url}/find/${stype}/${ptype}/${sex}/${window.prop_activity}/${from_year}/${to_year}/${lat - delta}/${lat + delta}/${lon - delta}/${lon + delta}/${is_verified}/${window.prop_deleted}/${id}`)
+    fetch(`${database_url}/find/${stype}/${ptype}/${sex}/${window.prop_activity}/${from_year}/${to_year}/${parseFloat(lat - delta).toFixed(3)}/${parseFloat(lat + delta).toFixed(3)}/${parseFloat(lon - delta).toFixed(3)}/${parseFloat(lon + delta).toFixed(3)}/${is_verified}/${window.prop_deleted}/${id}`)
     .then(resp => {
         if (!resp.ok) {
             throw new Error('Finding operation failed');
@@ -1181,42 +1094,50 @@ function find() {
     });
 }
 
-function dbEdit() {
-}
 
 // ok
 function saveProfile() {
-    for (let i=0; i<11; i++) {
-        if (window._cached_[i] !== undefined) {
-            window.prop_profile[i] = window._cached_[i];
+    const profile_id = appGetProfileByHash()[9];
+    if (profile_id != prop_profile[9] && event.target.className == 'deny') {
+        window.prop_deleted.push(profile_id);
+        window.prop_deleted = window.prop_deleted.slice(-99);
+        appKeepProps('prop_deleted');
+        goHome();
+    } else if (event.target.className == 'deny') {
+        reset();
+    } else {
+        for (let i=0; i<11; i++) {
+            if (window._cached_[i] !== undefined) {
+                window.prop_profile[i] = window._cached_[i];
+            }
         }
-    }
-    window.prop_profile[9] = window.prop_profile[9] || 0;
-    appSaveProps('prop_profile');
-    const p = window.prop_profile;
-    const data = {name: p[0], link: p[5], image: p[10], params: location.search, secret: p[12]};
-    fetch(`${database_url}/edit/${p[1]}/${p[2]}/${p[3]}/${p[6]}/${p[7]}/${p[8]}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(resp => {
-        if (!resp.ok) {
-            throw new Error('Profile has not been edited in DB');
-        }
-        return resp.json();
-    })
-    .then(data => {
-        console.log('Profile has been edited in DB:', data);
-        window.prop_profile[9] = data.id;
+        window.prop_profile[9] = window.prop_profile[9] || 0;
         appSaveProps('prop_profile');
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-    history.back();
+        const p = window.prop_profile;
+        const data = {name: p[0], link: p[5], image: p[10], params: location.search, secret: p[12]};
+        fetch(`${database_url}/edit/${p[1]}/${p[2]}/${p[3]}/${p[6]}/${parseFloat(p[7]).toFixed(3)}/${parseFloat(p[8]).toFixed(3)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(resp => {
+            if (!resp.ok) {
+                throw new Error('Profile has not been edited in DB');
+            }
+            return resp.json();
+        })
+        .then(data => {
+            console.log('Profile has been edited in DB:', data);
+            window.prop_profile[9] = data.id;
+            appSaveProps('prop_profile');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+        history.back();
+    }
 }
 
 
@@ -1240,12 +1161,40 @@ function displayFilter(alt, mode) {
 
 
 function reset() {
-localStorage.clear();
-_reset();
-appSaveProps();
-appKeepProps();
-embodyMain();
+    localStorage.clear();
+    _reset();
+    appSaveProps();
+    appKeepProps();
+    embodyMain();
+}
 
+
+function findMe() {
+    const status = document.querySelector('#status');
+    const input = document.querySelector('input[name="location"]');
+    input.value = '';
+    
+    function success(position) {
+        const lat = parseFloat(position.coords.latitude.toFixed(1)).toFixed(3);
+        const lon = parseFloat(position.coords.longitude.toFixed(1)).toFixed(3);
+        status.textContent = "";
+        input.value = `${lat}, ${lon}`;
+        appCachedProfileValue(profile_map.indexOf('lat'), lat);
+        appCachedProfileValue(profile_map.indexOf('lon'), lon);
+
+        //~ mapLink.href = `https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`;
+    }
+
+    function error() {
+        status.textContent = "Невозможно получить ваше местоположение";
+    }
+
+    if (!navigator.geolocation) {
+        status.textContent = "Geolocation не поддерживается вашим браузером";
+    } else {
+        status.textContent = "Определение местоположения…";
+        navigator.geolocation.getCurrentPosition(success, error);
+    }
 }
 
 
@@ -1253,8 +1202,5 @@ embodyMain();
 
 
 
-
-
-
-
-//~ https://www.google.com/maps/place/54.22415,83.37112/@54.22415,83.37112,100000m
+//~ https://www.openstreetmap.org/#map=12/55.0100/82.9300
+//~ https://www.google.com/maps/place/55.0,82.9/@55.0,82.9,100000m
